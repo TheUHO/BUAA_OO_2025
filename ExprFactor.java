@@ -30,9 +30,10 @@ public class ExprFactor extends Expr implements Factor {
                 i = i.add(BigInteger.ONE)) {
                 result = result.multiplyPoly(result, exprPoly);
             }
-            NumFactor signNumFactor = new NumFactor(sign, BigInteger.ONE);
-            Poly signPoly = signNumFactor.toPoly();
-            result = result.multiplyPoly(result, signPoly);
+            // 在表达式一级，我们不需要处理符号，因为
+            // NumFactor signNumFactor = new NumFactor(sign, BigInteger.ONE);
+            // Poly signPoly = signNumFactor.toPoly();
+            // result = result.multiplyPoly(result, signPoly);
             return result;
         }
     }
