@@ -24,16 +24,22 @@ public class Mono {
     }
 
     public String toString() {
-        if (exponent.equals(BigInteger.ZERO)) {
-            return coefficient.toString();
-        } else if (exponent.equals(BigInteger.ONE)) {
-            return coefficient + "*" + variable;
-        } else if (coefficient.equals(BigInteger.ZERO)) {
+        if (coefficient.equals(BigInteger.ZERO)) {
             return "0";
+        } else if (exponent.equals(BigInteger.ZERO)) {
+            return coefficient.toString();
+        } else  if (exponent.equals(BigInteger.ONE)) {
+            if (coefficient.equals(BigInteger.ONE)) {
+                return variable;
+            } else if (coefficient.equals(BigInteger.ONE.negate())) {
+                return "-" + variable;
+            } else {
+                return coefficient + "*" + variable;
+            }
         } else if (coefficient.equals(BigInteger.ONE)) {
             return variable + "^" + exponent;
         } else if (coefficient.equals(BigInteger.ONE.negate())) {
-            return "-" + variable + "^" + exponent;
+            return  "-" + variable + "^" + exponent;
         } else {
             return coefficient + "*" + variable + "^" + exponent;
         }

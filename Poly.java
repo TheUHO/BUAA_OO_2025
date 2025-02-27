@@ -1,5 +1,6 @@
 import java.util.HashMap;
 import java.math.BigInteger;
+import java.util.ArrayList;
 
 public class Poly {
     private HashMap<BigInteger, BigInteger> monosX = new HashMap<BigInteger, BigInteger>();
@@ -74,17 +75,36 @@ public class Poly {
     }
 
     public String toString() {
+        ArrayList<String> positiveTerms = new ArrayList<>();
+        ArrayList<String> negativeTerms = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         for (BigInteger exp : monosX.keySet()) {
             Mono mono = new Mono(monosX.get(exp), exp);
-            sb.append(mono.toString());
-            sb.append("+");
+            String monoStr = mono.toString();
+            if (monoStr.equals("0")) {
+                continue;
+            } else if (monoStr.charAt(0) == '-') {
+                negativeTerms.add(monoStr);
+            } else {
+                positiveTerms.add(monoStr);
+            }
         }
-        sb.deleteCharAt(sb.length() - 1); // delete the last "+"
+        // 处理正项
+        if (!positiveTerms.isEmpty()) {
+            sb.append(positiveTerms.get(0));
+            for (int i = 1; i < positiveTerms.size(); i++) {
+                sb.append("+").append(positiveTerms.get(i));
+            }
+        }
 
+        // 处理负项，直接添加，因为它们以'-'开头
+        for (String term : negativeTerms) {
+            sb.append(term);
+        }
         //关于多个单项式，第一个为0的情况
-        //关于多个单项式，第一个为负的情况
-        //关于多个单项式，中间出现+-单项式的情况
+        if (sb.length() == 0) {
+            return "0";
+        }
 
         return sb.toString();
     }

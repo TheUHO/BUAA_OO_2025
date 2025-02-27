@@ -37,8 +37,7 @@ public class Parser {
         term.addFactor(parseFactor(termSign));
         while (!lexer.isEnd() && lexer.getCurToken().getType() == Token.Type.MUL) {
             lexer.nextToken();
-            termSign = parseSign(sign);
-            termSign = termSign.multiply(sign);
+            termSign = parseSign(BigInteger.ONE);
             term.addFactor(parseFactor(termSign));
         }
         return term;
@@ -120,7 +119,7 @@ public class Parser {
         expr.addTerm(parseTerm(exprSign));
         while (!lexer.isEnd() && (lexer.getCurToken().getType() == Token.Type.ADD || 
         lexer.getCurToken().getType() == Token.Type.SUB)) {
-            exprSign = parseSign(BigInteger.ONE);
+            exprSign = parseSign(sign);
             expr.addTerm(parseTerm(exprSign));
         }
         return expr;
