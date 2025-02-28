@@ -36,6 +36,8 @@ public class Poly {
                     // 如果大于两个元素，则删除
                     if (result.monosX.size() > 1) {
                         result.monosX.remove(exp);
+                    } else {
+                        result.monosX.put(exp, coe);
                     }
                 } else {
                     result.monosX.put(exp, coe);
