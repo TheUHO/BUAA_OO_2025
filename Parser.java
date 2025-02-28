@@ -22,6 +22,7 @@ public class Parser {
     public Expr parseExpr() {
         BigInteger exprSign = parseSign(BigInteger.ONE);
         Expr expr = new Expr();
+        // 解析term，符号由exprSign决定
         expr.addTerm(parseTerm(exprSign));
         while (!lexer.isEnd() && (lexer.getCurToken().getType() == Token.Type.ADD || 
         lexer.getCurToken().getType() == Token.Type.SUB)) {
@@ -32,19 +33,18 @@ public class Parser {
     }
 
     public Term parseTerm(BigInteger sign) {
-        Term term = new Term();
-        BigInteger termSign = parseSign(sign);
-        term.addFactor(parseFactor(termSign));
+        Term term = new Term(sign); // 传入term的符号，来自于expr，是term的属性
+        term.addFactor(parseFactor());
         while (!lexer.isEnd() && lexer.getCurToken().getType() == Token.Type.MUL) {
             lexer.nextToken();
-            termSign = parseSign(BigInteger.ONE);
-            term.addFactor(parseFactor(termSign));
+            term.addFactor(parseFactor());
         }
         return term;
     }
 
-    public Factor parseFactor(BigInteger sign) {
-        BigInteger factorSign = parseSign(sign);
+    public Factor parseFactor() {
+        // factor的符号解析统一在此处进行
+        BigInteger factorSign = parseSign(BigInteger.ONE);
         Token token = lexer.getCurToken();
         if (token.getType() == Token.Type.NUM) {
             return parseNum(factorSign);
@@ -97,7 +97,8 @@ public class Parser {
             // 有指数，解析指数
             lexer.nextToken();
             BigInteger powSign = parseSign(BigInteger.ONE);
-            if (powSign.equals(BigInteger.ONE)) {
+            if (powSign.equals(BigInteger.ONE)) { 
+                // 只允许正指数 
                 BigInteger exponent = new BigInteger(lexer.getCurToken().getContent());
                 lexer.nextToken();
                 power.setExponent(exponent);

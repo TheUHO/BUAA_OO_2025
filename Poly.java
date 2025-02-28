@@ -33,7 +33,10 @@ public class Poly {
             if (result.monosX.containsKey(exp)) {
                 BigInteger coe = result.monosX.get(exp).add(poly2.monosX.get(exp));
                 if (coe.equals(BigInteger.ZERO)) {
-                    result.monosX.remove(exp);
+                    // 如果大于两个元素，则删除
+                    if (result.monosX.size() > 1) {
+                        result.monosX.remove(exp);
+                    }
                 } else {
                     result.monosX.put(exp, coe);
                 }
