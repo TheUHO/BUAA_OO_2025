@@ -33,7 +33,8 @@ public class Parser {
     }
 
     public Term parseTerm(BigInteger sign) {
-        Term term = new Term(sign); // 传入term的符号，来自于expr，是term的属性
+        BigInteger termSign = parseSign(sign);
+        Term term = new Term(termSign); // 传入term的符号，来自于expr，是term的属性
         term.addFactor(parseFactor());
         while (!lexer.isEnd() && lexer.getCurToken().getType() == Token.Type.MUL) {
             lexer.nextToken();
