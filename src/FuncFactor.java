@@ -15,6 +15,9 @@ public class FuncFactor implements Factor {
 
     // 将函数字符串转换为表达式
     private Expr toExpr() {
+        if (sign.equals(BigInteger.ONE.negate())) {
+            funcString = "-(" + funcString + ")";
+        }
         Lexer lexer = new Lexer(funcString);
         Parser parser = new Parser(lexer);
         return parser.parseExpr();

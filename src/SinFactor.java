@@ -31,8 +31,11 @@ public class SinFactor implements Factor {
 
     // 重写toPoly()方法
     @Override public Poly toPoly() {
-        // TODO
-        return null;
+        Mono mono = new Mono(sign, BigInteger.ZERO); // 创建一个单项式
+        mono.addSinFactor(factor.toPoly(), exponent);
+        Poly result = new Poly(); // 创建一个多项式
+        result.addMono(mono); // 将单项式加入多项式
+        return result; // 返回多项式
     }
     
 }

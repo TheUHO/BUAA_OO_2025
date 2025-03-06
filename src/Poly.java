@@ -1,45 +1,44 @@
 import java.util.HashMap;
+import java.util.Map;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
 public class Poly {
-    private HashMap<BigInteger, BigInteger> monosX = new HashMap<BigInteger, BigInteger>();
+    private HashMap<Mono, BigInteger> monos;
+
+    public Poly() {
+        this.monos = new HashMap<>();
+    }
 
     public void addMono(Mono mono) {
-        BigInteger exp = mono.getExponent();
-        BigInteger coe = mono.getCoefficient();
-        if (mono.getVariable().equals("x")) { //不能使用==比较字符串
-            if (exp.compareTo(BigInteger.ZERO) < 0) {
-                System.out.println("Error: invalid exponent " + exp);
-            } else if (monosX.containsKey(exp)) {
-                coe = coe.add(monosX.get(exp));
-                if (coe.equals(BigInteger.ZERO)) {
-                    monosX.remove(exp);
-                } else {
-                    monosX.put(exp, coe);
-                }
-            } else {
-                monosX.put(exp, coe);
-            }
+        if (!mono.getVariable().equals("x")) {
+            throw new IllegalArgumentException("Error: invalid variable " + mono.getVariable());
+        }
+        // 新建一个Mono对象，作为key，避免直接使用mono对象
+        Mono key = mono.normalized();
+        BigInteger coe = monos.getOrDefault(key, BigInteger.ZERO);
+        BigInteger sum = coe.add(mono.getCoefficient());
+        if (sum.equals(BigInteger.ZERO) && monos.size() > 1) {
+            monos.remove(key);
         } else {
-            System.out.println("Error: invalid variable " + mono.getVariable());
+            monos.put(key, sum);
         }
     }
 
     public Poly addPoly(Poly poly1, Poly poly2) {
         Poly result = new Poly();
-        result.monosX.putAll(poly1.monosX);
-        for (BigInteger exp : poly2.monosX.keySet()) {
-            if (result.monosX.containsKey(exp)) {
-                BigInteger coe = result.monosX.get(exp).add(poly2.monosX.get(exp));
-                if (coe.equals(BigInteger.ZERO) && result.monosX.size() > 1) {
-                    // 如果大于两个元素，则删除
-                    result.monosX.remove(exp);
-                } else {
-                    result.monosX.put(exp, coe);
-                }
+        for (Map.Entry<Mono, BigInteger> entry : poly1.monos.entrySet()) {
+            result.monos.put(entry.getKey(), entry.getValue());
+        }
+        // 遍历poly2，将其加入result
+        for (Map.Entry<Mono, BigInteger> entry : poly2.monos.entrySet()) {
+            Mono key = entry.getKey();
+            BigInteger coe = entry.getValue();
+            BigInteger sum = result.monos.getOrDefault(key, BigInteger.ZERO).add(coe);
+            if (sum.equals(BigInteger.ZERO)) {
+                result.monos.remove(key);
             } else {
-                result.monosX.put(exp, poly2.monosX.get(exp));
+                result.monos.put(key, sum);
             }
         }
         return result;
@@ -47,66 +46,81 @@ public class Poly {
 
     public Poly multiplyPoly(Poly poly1, Poly poly2) {
         Poly result = new Poly();
-        if (poly1.monosX.isEmpty()) {
+        if (poly1.monos.isEmpty()) {
             return poly2;
-        } else if (poly2.monosX.isEmpty()) {
+        } else if (poly2.monos.isEmpty()) {
             return poly1;
-        } else {
-            for (BigInteger exp1 : poly1.monosX.keySet()) {
-                for (BigInteger exp2 : poly2.monosX.keySet()) {
-                    BigInteger exp = exp1.add(exp2);
-                    BigInteger coe = poly1.monosX.get(exp1).multiply(poly2.monosX.get(exp2));
-                    Mono mono = new Mono(coe, exp);
-                    result.addMono(mono);
-                }
-            }
-            return result;
         }
-        
+        for (Map.Entry<Mono, BigInteger> entry1 : poly1.monos.entrySet()) {
+            for (Map.Entry<Mono, BigInteger> entry2 : poly2.monos.entrySet()) {
+                Mono mono1 = entry1.getKey();
+                Mono mono2 = entry2.getKey();
+                BigInteger coe = entry1.getValue().multiply(entry2.getValue());
+                Mono mono = mono1.multiply(mono2).normalized();
+                mono.setCoefficient(coe);
+                result.addMono(mono);
+            }
+        }
+        return result;
     }
 
     public Poly negPoly(Poly poly) {
         Poly result = new Poly();
-        for (BigInteger exp : poly.monosX.keySet()) {
-            BigInteger coe = poly.monosX.get(exp).negate();
-            Mono mono = new Mono(coe, exp);
+        for (Map.Entry<Mono, BigInteger> entry : poly.monos.entrySet()) {
+            Mono key = entry.getKey();
+            BigInteger coe = entry.getValue().negate();
+            Mono mono = new Mono(coe, key.getExponent());
+            mono.getSinMap().putAll(key.getSinMap());
+            mono.getCosMap().putAll(key.getCosMap());
             result.addMono(mono);
         }
         return result;
     }
 
     public String toString() {
+        if (monos.isEmpty()) {
+            return "0";
+        }
         ArrayList<String> positiveTerms = new ArrayList<>();
         ArrayList<String> negativeTerms = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        for (BigInteger exp : monosX.keySet()) {
-            Mono mono = new Mono(monosX.get(exp), exp);
-            String monoStr = mono.toString();
-            if (monoStr.equals("0")) {
+        // 遍历每一项，构造对应的单项式字符串，并分别归类
+        for (Map.Entry<Mono, BigInteger> entry : monos.entrySet()) {
+            Mono key = entry.getKey();
+            BigInteger coeff = entry.getValue();
+            // 生成实际的单项式，注意将三角函数因子也复制到新的 Mono 中
+            Mono m = new Mono(coeff, key.getExponent());
+            m.getSinMap().putAll(key.getSinMap());
+            m.getCosMap().putAll(key.getCosMap());
+            String s = m.toString();
+            if (s.equals("0")) {
                 continue;
-            } else if (monoStr.charAt(0) == '-') {
-                negativeTerms.add(monoStr);
+            }
+            // 按照首字符判断正负
+            if (s.charAt(0) == '-') {
+                negativeTerms.add(s);
             } else {
-                positiveTerms.add(monoStr);
+                positiveTerms.add(s);
             }
         }
-        // 处理正项
-        if (!positiveTerms.isEmpty()) {
-            sb.append(positiveTerms.get(0));
-            for (int i = 1; i < positiveTerms.size(); i++) {
-                sb.append("+").append(positiveTerms.get(i));
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        // 先输出所有正项，正项之间添加"+"号
+        for (String s : positiveTerms) {
+            if (first) {
+                sb.append(s);
+                first = false;
+            } else {
+                sb.append("+").append(s);
             }
         }
-
-        // 处理负项，直接添加，因为它们以'-'开头
-        for (String term : negativeTerms) {
-            sb.append(term);
+        // 然后输出所有负项，负项自带"-"，直接拼接
+        for (String s : negativeTerms) {
+            sb.append(s);
         }
-        //关于多个单项式，第一个为0的情况
+        
         if (sb.length() == 0) {
             return "0";
         }
-
         return sb.toString();
     }
 }

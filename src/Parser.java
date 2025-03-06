@@ -55,6 +55,10 @@ public class Parser {
             return parsePower(factorSign);
         } else if (token.getType() == Token.Type.FUNC) {
             return parseFunction(factorSign);
+        } else if (token.getType() == Token.Type.SIN) {
+            return parseSinFactor(factorSign);
+        }  else if (token.getType() == Token.Type.COS) {
+            return parseCosFactor(factorSign);
         } else {
             Factor subExpr = new ExprFactor(factorSign);
             if (token.getType() == Token.Type.LPAREN) {
@@ -65,22 +69,7 @@ public class Parser {
                 // 跳过右括号
                 lexer.nextToken();
             }
-            if (!lexer.isEnd() && lexer.getCurToken().getType() == Token.Type.POW) {
-                // 有指数，解析指数
-                lexer.nextToken();
-                BigInteger powSign = parseSign(BigInteger.ONE);
-                if (powSign.equals(BigInteger.ONE)) {
-                    BigInteger exponent = new BigInteger(lexer.getCurToken().getContent());
-                    lexer.nextToken();
-                    ((ExprFactor) subExpr).setExponent(exponent);
-                } else {
-                    // 出现负指数，无法处理
-                    throw new RuntimeException("Negative exponent is not supported.");
-                }
-            } else {
-                // 没有指数，则默认指数为1
-                ((ExprFactor) subExpr).setExponent(BigInteger.ONE);
-            }
+            ((ExprFactor) subExpr).setExponent(parsePow());
             return subExpr;
         }
     }
@@ -97,25 +86,24 @@ public class Parser {
     public PowFactor parsePower(BigInteger sign) {
         PowFactor power = new PowFactor(sign);
         power.setBase(BigInteger.ONE); // 默认底数为1
-        if (!lexer.isEnd() && lexer.getCurToken().getType() == Token.Type.POW) {
-            // 有指数，解析指数
+        power.setExponent(parsePow()); // 解析指数
+        return power;
+    }
+
+    public BigInteger parsePow() {
+        if (!lexer.isEnd() && lexer.getCurToken().getType() == Token.Type.POW) { // 有指数，解析指数
             lexer.nextToken();
             BigInteger powSign = parseSign(BigInteger.ONE);
-            if (powSign.equals(BigInteger.ONE)) { 
-                // 只允许正指数 
+            if (powSign.equals(BigInteger.ONE)) { // 只允许正指数 
                 BigInteger exponent = new BigInteger(lexer.getCurToken().getContent());
                 lexer.nextToken();
-                power.setExponent(exponent);
-            } else {
-                // 出现负指数，无法处理
+                return exponent;
+            } else { // 出现负指数，无法处理
                 throw new RuntimeException("Negative exponent is not supported.");
             }
         } else {
-            // 没有指数，则默认指数为1
-            power.setExponent(BigInteger.ONE);
+            return BigInteger.ONE; // 没有指数，则默认指数为1
         }
-    
-        return power;
     }
 
     public ExprFactor parseExprFactor(BigInteger sign) {
@@ -153,5 +141,39 @@ public class Parser {
         FuncFactor func = new FuncFactor(sign, funcName, seq, parameters);
         lexer.nextToken(); // 跳过右括号
         return func;
+    }
+
+    public SinFactor parseSinFactor(BigInteger sign) {
+        SinFactor sin = new SinFactor(sign);
+        if (lexer.getCurToken().getType() == Token.Type.SIN) {
+            lexer.nextToken(); // 跳过sin
+        } 
+        if (lexer.getCurToken().getType() == Token.Type.LPAREN) {
+            lexer.nextToken(); // 跳过左括号
+        }
+        Factor factor = parseFactor(); // 解析sin的参数
+        sin.setFactor(factor);
+        if (lexer.getCurToken().getType() == Token.Type.RPAREN) {
+            lexer.nextToken(); // 跳过右括号
+        }
+        sin.setExponent(parsePow());
+        return sin;
+    }
+
+    CosFactor parseCosFactor(BigInteger sign) {
+        CosFactor cos = new CosFactor(sign);
+        if (lexer.getCurToken().getType() == Token.Type.COS) {
+            lexer.nextToken(); // 跳过cos
+        } 
+        if (lexer.getCurToken().getType() == Token.Type.LPAREN) {
+            lexer.nextToken(); // 跳过左括号
+        }
+        Factor factor = parseFactor(); // 解析cos的参数
+        cos.setFactor(factor);
+        if (lexer.getCurToken().getType() == Token.Type.RPAREN) {
+            lexer.nextToken(); // 跳过右括号
+        }
+        cos.setExponent(parsePow()); // 解析指数
+        return cos;
     }
 }
