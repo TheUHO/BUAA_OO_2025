@@ -9,10 +9,12 @@ public class MainClass {
             for (BigInteger j = BigInteger.ZERO; j.compareTo(BigInteger.valueOf(3)) < 0; 
                 j = j.add(BigInteger.ONE)) {
                 String input = scanner.nextLine();
+                input = input.replaceAll("\\s", "");
                 FuncManager.FuncDefinition(input);
             }
         }
         String input = scanner.nextLine();
+        input = input.replaceAll("\\s", "");
         Lexer lexer = new Lexer(input);
         Parser parser = new Parser(lexer);
         Expr expr = parser.parseExpr();

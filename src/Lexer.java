@@ -23,7 +23,7 @@ public class Lexer {
         int digitPos = pos;
         StringBuilder sb = new StringBuilder();
         while (digitPos < input.length() && Character.isDigit(input.charAt(digitPos))) {
-            sb.append(input.charAt(pos));
+            sb.append(input.charAt(digitPos));
             digitPos++;
         }
         tokens.add(new Token(Token.Type.NUM, sb.toString()));
