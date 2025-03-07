@@ -2,12 +2,32 @@ import java.util.HashMap;
 import java.util.Map;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Poly {
     private HashMap<Mono, BigInteger> monos;
 
     public Poly() {
         this.monos = new HashMap<>();
+    }
+    
+    public HashMap<Mono, BigInteger> getMonos() {
+        return monos;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Poly) {
+            Poly other = (Poly) obj;
+            return monos.equals(other.monos);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(monos);
     }
 
     public void addMono(Mono mono) {

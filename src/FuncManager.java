@@ -67,61 +67,63 @@ public class FuncManager {
                 expandFunction(funcName, i, factors);
             }
         }
-    }   
+    }
 
-    private static String expandFunction(String funcName, int seq, ArrayList<String> factors) {
-        // 展开递推函数
+    // 展开递推函数
+    private static String expandFunction(String funcName, int seq, ArrayList<String> factors) { 
         if (seq < 0 || seq > 5) {
             throw new IllegalArgumentException("Invalid sequence number: " + seq);
-        }
-        // 如果已经存在展开的表达式，替换实参后返回
-        if (functions.get(funcName).containsKey(seq)) {
+        }    
+        if (functions.get(funcName).containsKey(seq)) { // 如果已经存在展开的表达式，替换实参后返回
             return replaceParams(funcName, functions.get(funcName).get(seq), factors);
         }
-        // 如果是初始定义，替换实参后直接返回
-        if (seq == 0 || seq == 1) {
+        if (seq == 0 || seq == 1) { // 如果是初始定义，替换实参后直接返回
             return replaceParams(funcName, functions.get(funcName).get(seq), factors);
         }
-        // 获取递推表达式
+        // 获取递推表达式（注意：这里先将 u,v 转换回 x,y 供处理）
         String recurrenceExpr = recurrences.get(funcName);
         recurrenceExpr = recurrenceExpr.replaceAll("u", "x").replaceAll("v", "y");
-        // 处理递推表达式n-1
-        Pattern pattern1 = Pattern
-            .compile("[a-zA-Z]+\\{n-1\\}\\(((?:[^()]+|\\((?:[^()]+|\\([^()]*\\))*\\))*)\\)");
-
-        Matcher matcher1 = pattern1.matcher(recurrenceExpr);
-        if (matcher1.find()) {
-            ArrayList<String> factors1 = new ArrayList<>();
-            for (String param : matcher1.group(1).split("\\s*,\\s*")) {
-                factors1.add(param);
+        // 分别处理 f{n-1}(...) 和 f{n-2}(...)
+        String callId1 = funcName + "{n-1}("; // 使用 funcName + "{n-1}(" 来定位调用位置
+        int index1 = recurrenceExpr.indexOf(callId1);
+        while (index1 != -1) { // 找到左括号的位置（callId1 后面紧跟的左括号）
+            int startParen = index1 + callId1.length() - 1; // 此处应指向'('
+            int endParen = findClosingParen(recurrenceExpr, startParen);
+            if (endParen == -1) {
+                throw new IllegalArgumentException("Unmatched parenthesis.");
             }
-            String expanded1 = expandFunction(funcName, seq - 1, factors1);
-            recurrenceExpr = recurrenceExpr
-            .replaceAll("[a-zA-Z]+\\{n-1\\}\\(((?:[^()]+|\\((?:[^()]+|\\([^()]*\\))*\\))*)\\)",
-             "(" + expanded1 + ")");
+            String paramsStr = recurrenceExpr.substring(startParen + 1, endParen); // 提取括号内的参数字符串
+            ArrayList<String> factors1 = new ArrayList<>(splitParameters(paramsStr)); // 利用栈分割参数
+            String expanded1 = expandFunction(funcName, seq - 1, factors1); // 递归展开 f{n-1} 调用
+            if (!isAtomic(expanded1)) {
+                expanded1 = "(" + expanded1 + ")";
+            }
+            String toReplace = recurrenceExpr.substring(index1, endParen + 1); // 将整个f{n-1}(...)替换
+            recurrenceExpr = recurrenceExpr.replace(toReplace, expanded1);
+            index1 = recurrenceExpr.indexOf(callId1); // 继续查找下一个 f{n-1} 调用
         }
-
-        // 处理n-2
-        Pattern pattern2 = Pattern
-            .compile("[a-zA-Z]+\\{n-2\\}\\(((?:[^()]+|\\((?:[^()]+|\\([^()]*\\))*\\))*)\\)");
-
-        Matcher matcher2 = pattern2.matcher(recurrenceExpr);
-        if (matcher2.find()) {
-            ArrayList<String> factors2 = new ArrayList<>();
-            for (String param : matcher2.group(1).split("\\s*,\\s*")) {
-                factors2.add(param);
+        String callId2 = funcName + "{n-2}("; // 处理 f{n-2}(...) 调用
+        int index2 = recurrenceExpr.indexOf(callId2);
+        while (index2 != -1) {
+            int startParen = index2 + callId2.length() - 1;
+            int endParen = findClosingParen(recurrenceExpr, startParen);
+            if (endParen == -1) {
+                throw new IllegalArgumentException("Unmatched parenthesis.");
             }
+            String paramsStr = recurrenceExpr.substring(startParen + 1, endParen);
+            ArrayList<String> factors2 = new ArrayList<>(splitParameters(paramsStr));
             String expanded2 = expandFunction(funcName, seq - 2, factors2);
-            recurrenceExpr = recurrenceExpr
-            .replaceAll("[a-zA-Z]+\\{n-2\\}\\(((?:[^()]+|\\((?:[^()]+|\\([^()]*\\))*\\))*)\\)",
-             "(" + expanded2 + ")");
+            if (!isAtomic(expanded2)) {
+                expanded2 = "(" + expanded2 + ")";
+            }
+            String toReplace = recurrenceExpr.substring(index2, endParen + 1);
+            recurrenceExpr = recurrenceExpr.replace(toReplace, expanded2);
+            index2 = recurrenceExpr.indexOf(callId2);
         }
-        // 替换x和y便于后续调用
+        // 将处理后的表达式中 x,y 替换回 u,v，保存展开结果
         recurrenceExpr = recurrenceExpr.replaceAll("x", "u").replaceAll("y", "v");
-        // 保存展开结果，便于后续调用
         functions.get(funcName).put(seq, recurrenceExpr);
-        // 替换实参后返回
-        recurrenceExpr = replaceParams(funcName, recurrenceExpr, factors);
+        recurrenceExpr = replaceParams(funcName, recurrenceExpr, factors); // 返回前再替换实参
         return recurrenceExpr;
     }
 
@@ -153,5 +155,49 @@ public class FuncManager {
         }
 
         return newExpr;
+    }
+
+    private static int findClosingParen(String s, int startIndex) {
+        int count = 0;
+        for (int i = startIndex; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '(') {
+                count++;
+            } else if (c == ')') {
+                count--;
+                if (count == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1; // 没有匹配
+    }
+
+    private static ArrayList<String> splitParameters(String s) {
+        ArrayList<String> params = new ArrayList<>();
+        int count = 0;
+        StringBuilder current = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == ',' && count == 0) {
+                params.add(current.toString().trim());
+                current.setLength(0);
+            } else {
+                if (c == '(') {
+                    count++;
+                } else if (c == ')') {
+                    count--;
+                }
+                current.append(c);
+            }
+        }
+        if (current.length() > 0) {
+            params.add(current.toString().trim());
+        }
+        return params;
+    }
+
+    private static boolean isAtomic(String s) {
+        return s.matches("\\d+") || s.matches("[a-zA-Z]+");
     }
 }

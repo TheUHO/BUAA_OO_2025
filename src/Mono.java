@@ -1,5 +1,6 @@
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class Mono {
@@ -112,7 +113,7 @@ public class Mono {
             }
         }     
         if (!exponent.equals(BigInteger.ZERO)) { // 处理 x 部分
-            if (sb.length() > 0) { // 系数不为0时，输出 "*"
+            if (sb.length() > 0 && sb.charAt(sb.length() - 1) != '-') { // 系数不为0时，输出 "*"
                 sb.append("*");
             }
             if (exponent.equals(BigInteger.ONE)) {
@@ -121,27 +122,84 @@ public class Mono {
                 sb.append("x^").append(exponent);
             }
         }
-        for (Poly poly : sinMap.keySet()) { // 处理 sin 部分
-            BigInteger exp = sinMap.get(poly);
-            if (sb.length() > 0) { // 系数不为0时，输出 "*"
+        for (Map.Entry<Poly, BigInteger> entry : sinMap.entrySet()) {
+            if (sb.length() > 0 && sb.charAt(sb.length() - 1) != '-') {
                 sb.append("*");
             }
-            sb.append("sin(").append(poly.toString()).append(")");
+            String trigExpr = buildTrigExpr("sin", entry.getKey());
+            sb.append(trigExpr);
+            BigInteger exp = entry.getValue();
             if (!exp.equals(BigInteger.ONE)) {
                 sb.append("^").append(exp);
             }
         }
-        for (Poly poly : cosMap.keySet()) { // 处理 cos 部分
-            BigInteger exp = cosMap.get(poly);
-            if (sb.length() > 0) { // 系数不为0时，输出 "*"
+        for (Map.Entry<Poly, BigInteger> entry : cosMap.entrySet()) {
+            if (sb.length() > 0 && sb.charAt(sb.length() - 1) != '-') {
                 sb.append("*");
             }
-            sb.append("cos(").append(poly.toString()).append(")");
+            String trigExpr = buildTrigExpr("cos", entry.getKey());
+            sb.append(trigExpr);
+            BigInteger exp = entry.getValue();
             if (!exp.equals(BigInteger.ONE)) {
                 sb.append("^").append(exp);
             }
+        }
+        if (sb.length() == 0) {
+            sb.append(coefficient);
         }
         return sb.toString();
     }
 
+    private String buildTrigExpr(String trigName, Poly poly) {
+        // 如果多项式只有一个单项式，则做细分判断
+        if (poly.getMonos().size() == 1) {
+            Mono onlyMono = poly.getMonos().keySet().iterator().next();
+            BigInteger coe = onlyMono.getCoefficient();
+            BigInteger exp = onlyMono.getExponent();
+            // 三角函数因子数量（如 > 1 则视为较复杂表达式）
+            int trigCount = onlyMono.getSinMap().size() + onlyMono.getCosMap().size();
+            
+            // 1) 系数为 0，sin(0) 或 cos(0)
+            if (coe.equals(BigInteger.ZERO)) {
+                return trigName + "(" + onlyMono.toString() + ")";
+            }
+            // 2) 系数为 1
+            else if (coe.equals(BigInteger.ONE)) {
+                // 2a) 指数为 0
+                if (exp.equals(BigInteger.ZERO)) {
+                    // 如果三角因子总数 > 1，需要额外括号
+                    if (trigCount > 1) {
+                        return trigName + "((" + poly.toString() + "))";
+                    } else {
+                        return trigName + "(" + poly.toString() + ")";
+                    }
+                }
+                // 2b) 指数不为 0
+                else {
+                    // 如果有三角因子，((...))
+                    if (trigCount > 0) {
+                        return trigName + "((" + poly.toString() + "))";
+                    } else {
+                        return trigName + "(" + poly.toString() + ")";
+                    }
+                }
+            }
+            // 3) 系数不为 0 和 1
+            else {
+                // 3a) 指数为 0
+                if (exp.equals(BigInteger.ZERO)) {
+                    // 无论三角因子多少，代码都一致
+                    return trigName + "(" + poly.toString() + ")";
+                }
+                // 3b) 指数不为 0，需要额外括号
+                else {
+                    return trigName + "((" + poly.toString() + "))";
+                }
+            }
+        } 
+        // 如果多项式含有多个 mono，直接加双括号
+        else {
+            return trigName + "((" + poly.toString() + "))";
+        }
+    }
 }
