@@ -62,7 +62,8 @@ public class FuncManager {
             throw new IllegalArgumentException("Invalid function definition: " + newInput);
         }
         // 如果初始定义和递推定义都存在，则生成0~5的展开表达式
-        if (functions.get(funcName).size() == 2 && recurrences.containsKey(funcName)) {
+        if (functions.containsKey(funcName) && functions.get(funcName).size() == 2 
+            && recurrences.containsKey(funcName)) {
             for (int i = 2; i <= 5; i++) {
                 expandFunction(funcName, i, factors);
             }
