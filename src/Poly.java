@@ -55,7 +55,7 @@ public class Poly {
             Mono key = entry.getKey();
             BigInteger coe = entry.getValue();
             BigInteger sum = result.monos.getOrDefault(key, BigInteger.ZERO).add(coe);
-            if (sum.equals(BigInteger.ZERO)) {
+            if (sum.equals(BigInteger.ZERO) && result.monos.size() > 1) {
                 result.monos.remove(key);
             } else {
                 result.monos.put(key, sum);
