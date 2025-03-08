@@ -45,6 +45,15 @@ public class Mono {
     public void addSinFactor(Poly factor, BigInteger exponent) {
         if (factor.toString().equals("0")) {
             this.coefficient = BigInteger.ZERO; 
+        } else if (factor.negateTriFactor()) {
+            Poly negFactor = factor.negPoly(factor);
+            if (exponent.mod(BigInteger.valueOf(2)).equals(BigInteger.ONE)) {
+                this.coefficient = this.coefficient.multiply(BigInteger.ONE.negate());
+            } else {
+                this.coefficient = this.coefficient.multiply(BigInteger.ONE);
+            }
+            sinMap.put(negFactor, sinMap.getOrDefault(negFactor, BigInteger.ZERO)
+                .add(exponent));
         } else {
             sinMap.put(factor, sinMap.getOrDefault(factor, BigInteger.ZERO).add(exponent));
         }
@@ -53,6 +62,10 @@ public class Mono {
     public void addCosFactor(Poly factor, BigInteger exponent) {
         if (factor.toString().equals("0")) {
             this.coefficient = this.coefficient.multiply(BigInteger.ONE);
+        } else if (factor.negateTriFactor()) {
+            Poly negFactor = factor.negPoly(factor);
+            cosMap.put(negFactor, cosMap.getOrDefault(negFactor, BigInteger.ZERO)
+                .add(exponent));
         } else {
             cosMap.put(factor, cosMap.getOrDefault(factor, BigInteger.ZERO).add(exponent));
         }

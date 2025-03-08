@@ -48,18 +48,16 @@ public class Poly {
     public Poly addPoly(Poly poly1, Poly poly2) {
         Poly result = new Poly();
         for (Map.Entry<Mono, BigInteger> entry : poly1.monos.entrySet()) {
-            result.monos.put(entry.getKey(), entry.getValue());
+            Mono key = entry.getKey();
+            key.setCoefficient(entry.getValue());
+            result.addMono(key);
         }
         // 遍历poly2，将其加入result
         for (Map.Entry<Mono, BigInteger> entry : poly2.monos.entrySet()) {
             Mono key = entry.getKey();
             BigInteger coe = entry.getValue();
-            BigInteger sum = result.monos.getOrDefault(key, BigInteger.ZERO).add(coe);
-            if (sum.equals(BigInteger.ZERO) && result.monos.size() > 1) {
-                result.monos.remove(key);
-            } else {
-                result.monos.put(key, sum);
-            }
+            key.setCoefficient(coe);
+            result.addMono(key);
         }
         return result;
     }
@@ -142,5 +140,28 @@ public class Poly {
             return "0";
         }
         return sb.toString();
+    }
+
+    public boolean negateTriFactor() {
+        Mono maxMono = null;
+        for (Map.Entry<Mono, BigInteger> entry : monos.entrySet()) {
+            Mono key = entry.getKey();
+            BigInteger coeff = entry.getValue();
+            if (maxMono == null || (key.getExponent().compareTo(maxMono.getExponent()) > 0 
+                && (!coeff.equals(BigInteger.ZERO)))) {
+                maxMono = key;
+            } else if (key.getExponent().equals(maxMono.getExponent()) 
+                && (!coeff.equals(BigInteger.ZERO))) {
+                if (key.getSinMap().size() + key.getCosMap().size() 
+                    > maxMono.getSinMap().size() + maxMono.getCosMap().size()) {
+                    maxMono = key;
+                }
+            }
+        }
+        if (maxMono != null && monos.get(maxMono).compareTo(BigInteger.ZERO) < 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
