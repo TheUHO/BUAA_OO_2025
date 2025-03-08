@@ -43,11 +43,19 @@ public class Mono {
     }
 
     public void addSinFactor(Poly factor, BigInteger exponent) {
-        sinMap.put(factor, sinMap.getOrDefault(factor, BigInteger.ZERO).add(exponent));
+        if (factor.toString().equals("0")) {
+            this.coefficient = BigInteger.ZERO; 
+        } else {
+            sinMap.put(factor, sinMap.getOrDefault(factor, BigInteger.ZERO).add(exponent));
+        }
     }
 
     public void addCosFactor(Poly factor, BigInteger exponent) {
-        cosMap.put(factor, cosMap.getOrDefault(factor, BigInteger.ZERO).add(exponent));
+        if (factor.toString().equals("0")) {
+            this.coefficient = this.coefficient.multiply(BigInteger.ONE);
+        } else {
+            cosMap.put(factor, cosMap.getOrDefault(factor, BigInteger.ZERO).add(exponent));
+        }
     }
 
     public Mono multiply(Mono other) {
