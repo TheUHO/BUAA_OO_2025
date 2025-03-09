@@ -43,7 +43,9 @@ public class Mono {
     }
 
     public void addSinFactor(Poly factor, BigInteger exponent) {
-        if (factor.toString().equals("0")) {
+        if (exponent.equals(BigInteger.ZERO)) { // 如果指数为0，不添加因子
+            return;
+        } else if (factor.toString().equals("0")) {
             this.coefficient = BigInteger.ZERO; 
         } else if (factor.negateTriFactor()) {
             Poly negFactor = factor.negPoly(factor);
@@ -60,7 +62,9 @@ public class Mono {
     }
 
     public void addCosFactor(Poly factor, BigInteger exponent) {
-        if (factor.toString().equals("0")) {
+        if (exponent.equals(BigInteger.ZERO)) { // 如果指数为0，不添加因子
+            return;
+        } else if (factor.toString().equals("0")) {
             this.coefficient = this.coefficient.multiply(BigInteger.ONE);
         } else if (factor.negateTriFactor()) {
             Poly negFactor = factor.negPoly(factor);
