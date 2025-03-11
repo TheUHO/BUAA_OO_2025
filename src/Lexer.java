@@ -31,26 +31,38 @@ public class Lexer {
     }
 
     private int handleSpecialCharacters(String input, int pos, char currentChar) {
+        int charPos = pos;
         if (currentChar == '(') {
             tokens.add(new Token(Token.Type.LPAREN, "("));
         } else if (currentChar == ')') {
             tokens.add(new Token(Token.Type.RPAREN, ")"));
-        } else if (currentChar == '+') {
-            tokens.add(new Token(Token.Type.ADD, "+"));
-        } else if (currentChar == '-') {
-            tokens.add(new Token(Token.Type.SUB, "-"));
+        } else if (currentChar == '+' || currentChar == '-') { // 处理多个连续符号
+            int count = 0;
+            while (charPos < input.length() && 
+                (input.charAt(charPos) == '+' || input.charAt(charPos) == '-')) {
+                if (input.charAt(charPos) == '-') {
+                    count++;
+                }
+                charPos++;
+            }
+            if (count % 2 == 0) {
+                tokens.add(new Token(Token.Type.ADD, "+"));
+            } else {
+                tokens.add(new Token(Token.Type.SUB, "-"));
+            }
+            charPos--;
         } else if (currentChar == '*') {
             tokens.add(new Token(Token.Type.MUL, "*"));
         } else if (currentChar == 'x') {
             tokens.add(new Token(Token.Type.X, "x"));
         } else if (currentChar == '^') {
             tokens.add(new Token(Token.Type.POW, "^"));
-        } else if (currentChar == 's' && input.startsWith("sin", pos)) {
+        } else if (currentChar == 's' && input.startsWith("sin", charPos)) {
             tokens.add(new Token(Token.Type.SIN, "sin"));
-            return pos + 3;
-        } else if (currentChar == 'c' && input.startsWith("cos", pos)) {
+            return charPos + 3;
+        } else if (currentChar == 'c' && input.startsWith("cos", charPos)) {
             tokens.add(new Token(Token.Type.COS, "cos"));
-            return pos + 3;
+            return charPos + 3;
         } else if (currentChar == 'f') {
             tokens.add(new Token(Token.Type.FUNC, "f"));
         } else if (currentChar == ',') {
@@ -64,7 +76,7 @@ public class Lexer {
         } else if (currentChar == '=') {
             tokens.add(new Token(Token.Type.EQ, "="));
         }
-        return pos + 1;
+        return charPos + 1;
     }
 
     public Token getCurToken() {  
