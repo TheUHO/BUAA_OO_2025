@@ -43,7 +43,9 @@ public class Mono {
     }
 
     public void addSinFactor(Poly factor, BigInteger exponent) {
-        if (factor.toString().equals("0")) {
+        if (exponent.equals(BigInteger.ZERO)) {
+            return;
+        } if (factor.toString().equals("0")) {
             this.coefficient = BigInteger.ZERO; 
         } else if (factor.negateTriFactor()) {
             Poly negFactor = factor.negPoly(factor);
@@ -175,7 +177,7 @@ public class Mono {
         // 如果多项式只有一个单项式，则做细分判断
         if (poly.getMonos().size() == 1) {
             Mono onlyMono = poly.getMonos().keySet().iterator().next();
-            BigInteger coe = onlyMono.getCoefficient();
+            BigInteger coe = poly.getMonos().get(onlyMono);
             BigInteger exp = onlyMono.getExponent();
             // 三角函数因子数量（如 > 1 则视为较复杂表达式）
             int trigCount = onlyMono.getSinMap().size() + onlyMono.getCosMap().size();
@@ -208,7 +210,7 @@ public class Mono {
             // 3) 系数不为 0 和 1
             else {
                 // 3a) 指数为 0
-                if (exp.equals(BigInteger.ZERO)) {
+                if (exp.equals(BigInteger.ZERO) && trigCount == 0) {
                     // 无论三角因子多少，代码都一致
                     return trigName + "(" + poly.toString() + ")";
                 }
