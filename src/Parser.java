@@ -57,8 +57,10 @@ public class Parser {
             return parseFunction(factorSign);
         } else if (token.getType() == Token.Type.SIN) {
             return parseSinFactor(factorSign);
-        }  else if (token.getType() == Token.Type.COS) {
+        } else if (token.getType() == Token.Type.COS) {
             return parseCosFactor(factorSign);
+        } else if (token.getType() == Token.Type.DX) {
+            return parseDerivative(factorSign);
         } else {
             Factor subExpr = new ExprFactor(factorSign);
             if (token.getType() == Token.Type.LPAREN) {
@@ -178,5 +180,19 @@ public class Parser {
         }
         cos.setExponent(parsePow()); // 解析指数
         return cos;
+    }
+
+    public DerivativeFactor parseDerivative(BigInteger sign) {
+        if (lexer.getCurToken().getType() == Token.Type.DX) {
+            lexer.nextToken(); // 跳过dx
+        }
+        if (lexer.getCurToken().getType() == Token.Type.LPAREN) {
+            lexer.nextToken(); // 跳过左括号
+        }
+        Expr expr = parseExpr(); // 解析导函数
+        if (lexer.getCurToken().getType() == Token.Type.RPAREN) {
+            lexer.nextToken(); // 跳过右括号
+        }
+        return new DerivativeFactor(sign, expr);
     }
 }

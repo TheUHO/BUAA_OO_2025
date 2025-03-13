@@ -63,18 +63,19 @@ public class Lexer {
         } else if (currentChar == 'c' && input.startsWith("cos", charPos)) {
             tokens.add(new Token(Token.Type.COS, "cos"));
             return charPos + 3;
+        } else if (currentChar == 'd' && input.startsWith("dx", charPos)) {
+            tokens.add(new Token(Token.Type.DX, "dx"));
+            return charPos + 2;
         } else if (currentChar == 'f' || currentChar == 'g' || currentChar == 'h') {
             tokens.add(new Token(Token.Type.FUNC, String.valueOf(currentChar)));
         } else if (currentChar == ',') {
             tokens.add(new Token(Token.Type.COMMA, ","));
-        } else if (currentChar == 'y') {
-            tokens.add(new Token(Token.Type.Y, "y"));
         } else if (currentChar == '{') {
             tokens.add(new Token(Token.Type.LBRACE, "{"));
         } else if (currentChar == '}') {
             tokens.add(new Token(Token.Type.RBRACE, "}"));
-        } else if (currentChar == '=') {
-            tokens.add(new Token(Token.Type.EQ, "="));
+        }  else if (currentChar == 'y') {
+            tokens.add(new Token(Token.Type.Y, "y"));
         }
         return charPos + 1;
     }

@@ -6,6 +6,8 @@ public class FuncFactor implements Factor {
     private BigInteger sign;
     private String funcString; // 将实参代入函数所得字符串
     private Expr funcExpr; // 函数表达式
+    private Poly polyCache;
+    private boolean polyDirty = true;
 
     public FuncFactor(BigInteger sign, String name, ArrayList<String> parameters) {
         this.sign = sign;
@@ -25,6 +27,21 @@ public class FuncFactor implements Factor {
 
     @Override
     public Poly toPoly() {
-        return funcExpr.toPoly();
+        if (!polyDirty && polyCache != null) {
+            return polyCache;
+        }
+        Poly result = funcExpr.toPoly();
+        polyCache = result;
+        polyDirty = false;
+        return result;
+    }
+
+    @Override
+    public Poly toDerivative() {
+        Poly result = funcExpr.toDerivative();
+        if (sign.equals(BigInteger.ONE.negate())) {
+            result = result.negPoly(result);
+        }
+        return result;
     }
 }

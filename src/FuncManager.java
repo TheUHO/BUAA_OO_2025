@@ -51,6 +51,8 @@ public class FuncManager {
                     parameters.get("f").add(param);
                 }
             }
+            expr = expandNormalFunction(funcName, factors); // 展开普通函数
+            functions.put(funcName, expr.replaceAll("x", "u").replaceAll("y", "v")); // 保存展开结果
         } else if (recurrenceMatcher.matches()) { //处理递推定义
             funcName = "f"; // 递推表达式中的函数名
             params = recurrenceMatcher.group(3); // 形参
@@ -121,6 +123,9 @@ public class FuncManager {
             recurrenceExpr = recurrenceExpr.replaceAll("x", "u").replaceAll("y", "v");
             functions.put(funcName + "{" + seq + "}", recurrenceExpr);
             recurrenceExpr = replaceParams(funcName, recurrenceExpr, factors); // 返回前再替换实参
+            recurrenceExpr = expandNormalFunction(funcName + "{" + seq + "}", factors); // 递归展开普通函数
+            functions.put(funcName + "{" + seq + "}", recurrenceExpr
+                .replaceAll("x", "u").replaceAll("y", "v")); // 保存展开结果
             return recurrenceExpr;
         }
     }
@@ -223,6 +228,6 @@ public class FuncManager {
     }
 
     private static boolean isAtomic(String s) {
-        return s.matches("\\d+") || s.matches("[a-zA-Z]+");
+        return s.matches("\\d+") || s.matches("[xyuv]");
     }
 }

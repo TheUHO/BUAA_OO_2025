@@ -1,6 +1,6 @@
 public class Token {
     public enum Type {
-        ADD, SUB, MUL, LPAREN, RPAREN, NUM, X, Y, POW, SIN, COS, FUNC, LBRACE, RBRACE, COMMA, EQ
+        ADD, SUB, MUL, LPAREN, RPAREN, NUM, X, Y, POW, SIN, COS, FUNC, LBRACE, RBRACE, COMMA, DX
     }
     
     private final Type type;
