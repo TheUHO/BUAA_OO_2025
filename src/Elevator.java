@@ -26,7 +26,8 @@ public class Elevator extends Thread {
     public void run() {
         while (true) {
             Advice advice = strategy.getAdvice(currentFloor, direction, personsIn);
-            System.out.println("Elevator " + id + " " + advice);
+            //System.out.println("Elevator " + id + " " + advice + " " +
+            //currentFloor + " " + direction + " " + personsIn);
             switch (advice) {
                 case OPEN:
                     openAndClose();
