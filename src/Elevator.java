@@ -95,8 +95,11 @@ public class Elevator extends Thread {
                 e.printStackTrace();
             }
         }
-        // 更新楼层
+        // 更新楼层，避免出现B0层
         currentFloor += direction;
+        if (currentFloor == 0) {
+            currentFloor += direction;
+        }
         String floorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
         TimableOutput.println(String.format("ARRIVE-%s-%d", floorStr, id));
     }
