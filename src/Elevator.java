@@ -85,6 +85,16 @@ public class Elevator extends Thread {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        // 量子电梯
+        Advice advice = strategy.getAdvice(currentFloor, direction, personsIn); // 获取建议
+        if (advice == Advice.OPEN) {
+            openAndClose(); // 打开并关闭
+            try {
+                sleep(400);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         // 更新楼层
         currentFloor += direction;
         String floorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
