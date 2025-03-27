@@ -48,18 +48,25 @@ public class Strategy {
         if (personsIn == maxPersonNum) {
             return false; // 如果电梯内已满，无需判断是否有人进入
         }
-        for (Person person : subQueue.getPersons()) {
-            if (person.getFromInt() == currentFloor && person.getDirection() == direction) {
-                return true; // 如果当前层有等待乘客且方向相同
+        synchronized (subQueue) {
+            for (Person person : subQueue.getPersons()) {
+                if (person.getFromInt() == currentFloor && person.getDirection() == direction) {
+                    return true; // 如果当前层有等待乘客且方向相同
+                }
             }
         }
         return false;
     }
 
     private boolean hasRequestAhead(int currentFloor, int direction) {
-        for (Person person : subQueue.getPersons()) { // 遍历请求队列
-            if ((person.getFromInt() - currentFloor) * direction > 0) {
-                return true; // 如果当前方向前方有请求
+        synchronized (subQueue) {
+            if (subQueue.isEmpty()) {
+                return false; // 如果请求队列为空，无需判断前方是否有请求
+            }
+            for (Person person : subQueue.getPersons()) { // 遍历请求队列
+                if ((person.getFromInt() - currentFloor) * direction > 0) {
+                    return true; // 如果当前方向前方有请求
+                }
             }
         }
         return false;
