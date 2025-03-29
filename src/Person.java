@@ -21,6 +21,17 @@ public class Person {
         this.direction = Integer.compare(toInt, fromInt);
     }
 
+    public Person(String fromFloor, String toFloor, int personId, int priority, int elevatorId) {
+        this.fromFloor = fromFloor;
+        this.toFloor = toFloor;
+        this.personId = personId;
+        this.priority = priority;
+        this.elevatorId = elevatorId;
+        this.fromInt = floorToInt(fromFloor);
+        this.toInt = floorToInt(toFloor);
+        this.direction = Integer.compare(toInt, fromInt);
+    }
+
     public int getPersonId() {
         return personId;
     }

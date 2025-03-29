@@ -52,14 +52,21 @@ public class RequestQueue {
             notifyAll();
             return null;
         } else {
+            Person highestPriorityPerson = null;
             Iterator<Person> iterator = persons.iterator();
             while (iterator.hasNext()) {
                 Person p = iterator.next();
                 if (p.getFromInt() == floor && p.getDirection() == direction) {
-                    iterator.remove();
-                    notifyAll();
-                    return p;
+                    if (highestPriorityPerson == null ||
+                        p.getPriority() > highestPriorityPerson.getPriority()) {
+                        highestPriorityPerson = p;
+                    }
                 }
+            }
+            if (highestPriorityPerson != null) {
+                persons.remove(highestPriorityPerson);
+                notifyAll();
+                return highestPriorityPerson;
             }
             notifyAll();
             return null;
