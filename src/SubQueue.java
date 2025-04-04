@@ -53,7 +53,30 @@ public class SubQueue {
             }
             notifyAll();
             return null;
+        }    
+    }
+
+    public synchronized ArrayList<Person> getMatchingCandidates(int currentFloor, 
+        int direction, int targetFloor, int capacity) { // 返回符合条件候选乘客列表
+        ArrayList<Person> candidates = new ArrayList<>(); // 用于存放候选乘客
+        Iterator<Person> iterator = persons.iterator(); // 获取队列迭代器
+        while (iterator.hasNext() && candidates.size() < capacity) { // 遍历且未达容量
+            Person p = iterator.next(); // 获取候选乘客
+            if (p.getFromInt() == currentFloor && p.getDirection() == direction) { // 判断当前层和方向
+                int extra = p.getToInt() - targetFloor; // 计算目标差值
+                if (direction != 0 && direction * extra >= 0) { // 条件满足：目标楼层在调度目标“更远”
+                    candidates.add(p); // 添加到候选列表
+                    iterator.remove(); // 从等待队列中移除该乘客
+                }
+            }
         }
-        
+        return candidates; // 返回候选乘客列表
+    }
+    
+    public synchronized Person getPrimaryRequest() { // 返回最早到达的乘客
+        if (persons.isEmpty()) {
+            return null;
+        }
+        return persons.get(0);
     }
 }
