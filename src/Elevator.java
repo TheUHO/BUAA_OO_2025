@@ -115,18 +115,6 @@ public class Elevator extends Thread {
         }
         if (mainRequest.get() != null && person.getPersonId() == mainRequest.get().getPersonId()) {
             mainRequest.set(null);
-            Person p = subQueue.getPrimaryRequest(); // 获取主请求
-            if (p != null && personsIn == 0) {
-                mainRequest.set(p); // 设置主请求，但不改变方向
-                // System.out.println("New main request: Elevator " + id + " at " +
-                //     currentFloor + " d:" + direction + " with p:" + personsIn + " main: " +
-                //     mainRequest.get().getPersonId());
-                printReceiveRequest(mainRequest.get());
-            } else if (p == null && personsIn == 0) {
-                direction = 0; // 没有主请求，电梯不动
-            }
-        } else if (mainRequest.get() == null && personsIn == 0) {
-            direction = 0; // 没有主请求，电梯不动
         }
     }
 
@@ -323,6 +311,16 @@ public class Elevator extends Thread {
     }
 
     private void move() {
+        if (mainRequest.get() == null && personsIn == 0) {
+            Person person = subQueue.getPrimaryRequest(); // 获取主请求
+            if (person != null) {
+                mainRequest.set(person); // 获取主请求
+                printReceiveRequest(person);
+            } else {
+                direction = 0; // 没有请求，电梯不动
+                return;
+            }
+        }
         // 量子电梯
         long currentTime = System.currentTimeMillis();
         long elapsedTime = currentTime - lastTime;

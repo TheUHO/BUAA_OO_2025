@@ -18,12 +18,10 @@ public class NewStrategy { // 新策略：LOOK+ALS
 
     public Advice getAdvice(int currentFloor, int direction, int personsIn) {
         this.personsIn = personsIn;
-        // 处理临时调度请求
-        if (subQueue.hasScheRequest()) {
+        if (subQueue.hasScheRequest()) { // 处理临时调度请求
             return Advice.SCHE;
         }
-        // 电梯空闲状态选择主请求
-        if (direction == 0) {
+        if (direction == 0) { // 电梯空闲状态选择主请求
             Person p = subQueue.getPrimaryRequest();
             if (p != null) {
                 return Advice.MOVE;
