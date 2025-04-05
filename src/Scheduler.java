@@ -40,7 +40,11 @@ public class Scheduler extends Thread {
             }
             Person person = mainQueue.getPersonRequest();
             if (person != null) {
-                subQueues.get(bestElevator(person)).addPersonRequest(person);
+                int elevatorId = bestElevator(person);
+                subQueues.get(elevatorId).addPersonRequest(person);
+                // System.out.println("Scheduler: " + person.getPersonId() + " "
+                //     + person.getFromFloor() + " " + person.getToFloor() + " "
+                //     + elevatorId);
             } else {
                 continue;
             }
