@@ -8,6 +8,7 @@ public class Person {
     private final int direction;
     private final int fromInt;
     private final int toInt;
+    private final long timeStamp; // 乘客请求的时间戳
 
     public Person(PersonRequest request) {
         this.fromFloor = request.getFromFloor();
@@ -17,9 +18,10 @@ public class Person {
         this.fromInt = floorToInt(fromFloor);
         this.toInt = floorToInt(toFloor);
         this.direction = Integer.compare(toInt, fromInt);
+        this.timeStamp = System.currentTimeMillis(); // 记录请求的时间戳
     }
 
-    public Person(String fromFloor, String toFloor, int personId, int priority) {
+    public Person(String fromFloor, String toFloor, int personId, int priority, long timeStamp) {
         this.fromFloor = fromFloor;
         this.toFloor = toFloor;
         this.personId = personId;
@@ -27,6 +29,7 @@ public class Person {
         this.fromInt = floorToInt(fromFloor);
         this.toInt = floorToInt(toFloor);
         this.direction = Integer.compare(toInt, fromInt);
+        this.timeStamp = timeStamp; // 记录请求的时间戳
     }
 
     public int getPersonId() {
@@ -55,6 +58,10 @@ public class Person {
     
     public int getDirection() {
         return direction;
+    }
+
+    public long getTimeStamp() {
+        return timeStamp; // 返回请求的时间戳
     }
 
     // fromFloor和toFloor可到达楼层：地下B4-B1层，地上F1-F7层，共11层

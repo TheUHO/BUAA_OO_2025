@@ -91,10 +91,21 @@ public class SubQueue {
         return candidates; // 返回候选乘客列表
     }
     
-    public synchronized Person getPrimaryRequest() { // 返回最早到达的乘客
+    public synchronized Person getPrimaryRequest() {
         if (persons.isEmpty()) {
             return null;
         }
-        return persons.get(0);
+        Person selected = null;
+        double maxScore = Double.NEGATIVE_INFINITY;
+        long currentTime = System.currentTimeMillis();
+        for (Person p : persons) {
+            double waitingSeconds = (currentTime - p.getTimeStamp()) / 1000.0;
+            double compositeScore = p.getPriority() * waitingSeconds;
+            if (compositeScore > maxScore) {
+                maxScore = compositeScore;
+                selected = p;
+            }
+        }
+        return selected;
     }
 }

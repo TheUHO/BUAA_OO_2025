@@ -156,8 +156,8 @@ public class Elevator extends Thread {
             printOutRequest(p);
             iterator.remove();
             if (p.getToInt() != currentFloor) {
-                Person person = new Person(curFloorStr, 
-                    p.getToFloor(), p.getPersonId(), p.getPriority());
+                Person person = new Person(curFloorStr, p.getToFloor(), 
+                    p.getPersonId(), p.getPriority(), p.getTimeStamp());
                 mainQueue.addPersonRequest(person); // 将乘客放回主队列
             }
         }
@@ -212,8 +212,8 @@ public class Elevator extends Thread {
                     printOutRequest(p);
                     iterator.remove();
                     if (p.getToInt() != currentFloor) {
-                        Person person = new Person(curFloorStr, 
-                            p.getToFloor(), p.getPersonId(), p.getPriority());
+                        Person person = new Person(curFloorStr, p.getToFloor(), 
+                            p.getPersonId(), p.getPriority(), p.getTimeStamp());
                         mainQueue.addPersonRequest(person); // 将乘客放回主队列
                     }
                 }
@@ -335,16 +335,25 @@ public class Elevator extends Thread {
         }
         Advice advice = strategy.getAdvice(currentFloor, direction, personsIn);
         if (advice == Advice.SCHE) {
-            // 更新楼层，避免出现B0层
-            currentFloor += direction;
-            if (currentFloor == 0) {
-                currentFloor += direction;
+            ScheRequest req = subQueue.getScheRequest();
+            if (req != null) {
+                final int targetFloor = convertFloor(req.getToFloor());
+                if (personsIn == 0 && Math.abs(currentFloor + direction - targetFloor) 
+                    > Math.abs(currentFloor - targetFloor)) {
+                    // 如果电梯内没人且移动后离目标楼层更远，则不更新楼层
+                } else {
+                    // 更新楼层，避免出现B0层
+                    currentFloor += direction;
+                    if (currentFloor == 0) {
+                        currentFloor += direction;
+                    }
+                    curFloorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
+                    TimableOutput.println(String.format("ARRIVE-%s-%d", curFloorStr, id));
+                    lastTime = System.currentTimeMillis(); // 更新时间
+                }
+                handleScheRequset();
+                return;
             }
-            curFloorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
-            TimableOutput.println(String.format("ARRIVE-%s-%d", curFloorStr, id));
-            lastTime = System.currentTimeMillis(); // 更新时间
-            handleScheRequset();
-            return;
         } else if (advice == Advice.OPEN) {
             openAndClose(); // 打开并关闭
             return;

@@ -1,7 +1,5 @@
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Random;
 
 public class Scheduler extends Thread {
     private final MainQueue mainQueue; // 主请求队列
@@ -18,25 +16,35 @@ public class Scheduler extends Thread {
     public Integer bestElevator(Person person) {
         Collection<ShadowElevator> shadows = ElevatorStorage.getInstance().getAllShadows();
         int bestPerformance = Integer.MAX_VALUE;
-        ArrayList<Integer> bestElevatorIds = new ArrayList<>();
+        int bestAssignedCount = Integer.MAX_VALUE;
+        int bestElevatorId = -1;
+        ShadowElevator bestShadow = null; 
         for (ShadowElevator shadow : shadows) {
             int perf = shadow.getEstimatePerformance(person);
-            // System.out.println("Person: " + person.getPersonId() + " for elevator " +
-            //     shadow.getElevatorId() + " " + perf);
             if (perf < bestPerformance) {
                 bestPerformance = perf;
-                bestElevatorIds.clear();
-                bestElevatorIds.add(shadow.getElevatorId());
+                bestAssignedCount = shadow.getAssignedCount();
+                bestElevatorId = shadow.getElevatorId();
+                bestShadow = shadow;
             } else if (perf == bestPerformance) {
-                bestElevatorIds.add(shadow.getElevatorId());
+                int currentAssigned = shadow.getAssignedCount();
+                if (currentAssigned < bestAssignedCount) {
+                    bestAssignedCount = currentAssigned;
+                    bestElevatorId = shadow.getElevatorId();
+                    bestShadow = shadow;
+                } else if (currentAssigned == bestAssignedCount) {
+                    // 如果已分配数量也相同，则选择电梯编号较小的
+                    if (shadow.getElevatorId() < bestElevatorId) {
+                        bestElevatorId = shadow.getElevatorId();
+                        bestShadow = shadow;
+                    }
+                }
             }
         }
-        if (!bestElevatorIds.isEmpty()) {
-            Random rand = new Random();
-            int index = rand.nextInt(bestElevatorIds.size());
-            return bestElevatorIds.get(index);
+        if (bestShadow != null) { // 选定后增加该电梯的请求分配计数
+            bestShadow.addAssignedCount();
         }
-        return -1;
+        return bestElevatorId;
     }
 
     @Override
@@ -52,6 +60,7 @@ public class Scheduler extends Thread {
             if (person != null) {
                 int elevatorId = bestElevator(person);
                 subQueues.get(elevatorId).addPersonRequest(person);
+                // System.out.println("Per " + person.getPersonId() + "to Elevator " + elevatorId);
             } else {
                 continue;
             }
