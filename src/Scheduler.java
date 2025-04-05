@@ -1,10 +1,10 @@
 import java.util.HashMap;
+import java.util.Collection;
 
 public class Scheduler extends Thread {
     private final MainQueue mainQueue;
     private final HashMap<Integer, SubQueue> subQueues;
     private final HashMap<Integer, Elevator> elevators;
-    private int count = 0;
 
     public Scheduler(MainQueue mainQueue, HashMap<Integer, SubQueue> subQueues,
         HashMap<Integer, Elevator> elevators) {
@@ -14,17 +14,24 @@ public class Scheduler extends Thread {
     }
 
     public Integer bestElevator(Person person) {
-        // TODO: 根据电梯状态选择最优电梯
-        count = (count + 1) % elevators.size(); // 轮询选择电梯
-        return count;
+        Collection<ShadowElevator> shadows = ElevatorStorage.getInstance().getAllShadows();
+        int bestPerformance = Integer.MAX_VALUE;
+        int bestElevatorId = -1;
+        for (ShadowElevator shadow : shadows) {
+            int perf = shadow.getEstimatePerformance(person); // 简单估值：距离绝对值
+            if (perf < bestPerformance) {
+                bestPerformance = perf;
+                bestElevatorId = shadow.getElevatorId();
+            }
+        }
+        return bestElevatorId;
     }
 
     @Override
     public void run() {
         while (true) {
             synchronized (mainQueue) {
-                if (mainQueue.isEmpty() && mainQueue.isEnd()) {
-                    // TODO: 需要等到所有请求都被处理完，添加计数逻辑
+                if (mainQueue.isEmpty() && mainQueue.isAllEnd()) {
                     for (SubQueue subQueue : subQueues.values()) {
                         subQueue.setEnd();
                     }

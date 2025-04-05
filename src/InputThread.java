@@ -19,19 +19,19 @@ public class InputThread extends Thread {
         while (true) {
             Request request = elevatorInput.nextRequest();
             if (request == null) { 
-                // TODO: 注意人数不为0且临时调度未结束不能结束线程
-                mainQueue.setEnd();
+                mainQueue.setInputEnd();
                 break;
             } else if (request instanceof PersonRequest) {
                 PersonRequest personRequest = (PersonRequest) request;
                 Person person = new Person(personRequest);
                 mainQueue.addPersonRequest(person);
+                mainQueue.addPassengerCount();
             } else if (request instanceof ScheRequest) {
                 ScheRequest scheRequest = (ScheRequest) request;
-                // TODO: 处理临时调度请求，直接传给电梯
                 int elevatorId = scheRequest.getElevatorId();
                 ScheduleReq scheduleReq = scheduleReqs.get(elevatorId);
                 scheduleReq.setScheRequest(scheRequest);
+                mainQueue.addScheRequestCount();
             }
         }
     }

@@ -3,7 +3,9 @@ import java.util.ArrayList;
 public class MainQueue {
 
     private ArrayList<Person> persons = new ArrayList<>();
-    private boolean end = false;
+    private int passengerCount = 0;
+    private int scheRequestCount = 0;
+    private boolean inputEnd = false;
 
     public synchronized ArrayList<Person> getPersons() {
         notifyAll();
@@ -16,7 +18,7 @@ public class MainQueue {
     }
 
     public synchronized Person getPersonRequest() { // 分配任务
-        while (persons.isEmpty() && !this.end) {
+        while (persons.isEmpty() && !this.inputEnd) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -37,12 +39,44 @@ public class MainQueue {
         return persons.isEmpty();
     }
 
-    public synchronized boolean isEnd() {
-        return end;
+    public synchronized boolean isInputEnd() {
+        return inputEnd;
     }
 
-    public synchronized void setEnd() {
-        end = true;
+    public synchronized void setInputEnd() {
+        inputEnd = true;
+        notifyAll();
+    }
+
+    public synchronized boolean isAllEnd() {
+        return inputEnd && passengerCount == 0 && scheRequestCount == 0; // 所有任务都完成
+    }
+
+    public synchronized void addPassengerCount() {
+        passengerCount++;
+        notifyAll();
+    }
+
+    public synchronized int getPassengerCount() {
+        return passengerCount;
+    }
+    
+    public synchronized void subPassengerCount() {
+        passengerCount--;
+        notifyAll();
+    }
+
+    public synchronized void addScheRequestCount() {
+        scheRequestCount++;
+        notifyAll();
+    }
+
+    public synchronized int getScheRequestCount() {
+        return scheRequestCount;
+    }
+
+    public synchronized void subScheRequestCount() {
+        scheRequestCount--;
         notifyAll();
     }
 }
