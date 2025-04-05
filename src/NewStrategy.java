@@ -4,24 +4,22 @@ import java.util.concurrent.atomic.AtomicReference;
 public class NewStrategy { // 新策略：LOOK+ALS
     private final SubQueue subQueue; // 等待队列
     private final ArrayList<Person> persons; // 电梯内乘客列表
-    private final ScheduleReq scheduleReq; // 临时调度请求
     private int personsIn;
     private final int maxPersonNum = 6;
     private AtomicReference<Person> mainRequestRef;
 
-    public NewStrategy(SubQueue subQueue, ArrayList<Person> persons, ScheduleReq scheduleReq, 
+    public NewStrategy(SubQueue subQueue, ArrayList<Person> persons, 
         int personsIn, AtomicReference<Person> mainRequestRef) {
         this.mainRequestRef = mainRequestRef; // 主请求
         this.subQueue = subQueue; // 初始化等待队列
         this.persons = persons; // 初始化电梯内乘客列表
-        this.scheduleReq = scheduleReq; // 初始化临时调度请求
         this.personsIn = personsIn;
     }
 
     public Advice getAdvice(int currentFloor, int direction, int personsIn) {
         this.personsIn = personsIn;
         // 处理临时调度请求
-        if (scheduleReq.hasScheRequest()) {
+        if (subQueue.hasScheRequest()) {
             return Advice.SCHE;
         }
         // 电梯空闲状态选择主请求

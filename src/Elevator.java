@@ -13,7 +13,6 @@ public class Elevator extends Thread {
     private int personsIn;
     private int direction;
     private final ArrayList<Person> persons;
-    private ScheduleReq scheduleReq;
     private final LookStrategy strategy;
     private final NewStrategy newStrategy;
     private final int maxPersonNum = 6;
@@ -21,7 +20,7 @@ public class Elevator extends Thread {
     private double speed = 0.4; // 电梯速度
     private AtomicReference<Person> mainRequest; 
 
-    public Elevator(int id, MainQueue mainQueue, SubQueue subQueue, ScheduleReq scheduleReq) {
+    public Elevator(int id, MainQueue mainQueue, SubQueue subQueue) {
         this.id = id;
         this.mainQueue = mainQueue;
         this.subQueue = subQueue;
@@ -30,11 +29,9 @@ public class Elevator extends Thread {
         this.personsIn = 0;
         this.direction = 0; // 如何确定初始方向？
         this.persons = new ArrayList<>();
-        this.scheduleReq = scheduleReq;
         this.mainRequest = new AtomicReference<>(null);
-        this.strategy = new LookStrategy(subQueue, persons, scheduleReq, personsIn);
-        this.newStrategy = new NewStrategy(subQueue, persons, scheduleReq, 
-            personsIn, mainRequest);
+        this.strategy = new LookStrategy(subQueue, persons, personsIn);
+        this.newStrategy = new NewStrategy(subQueue, persons, personsIn, mainRequest);
         this.lastTime = System.currentTimeMillis();
     }
 
@@ -112,7 +109,7 @@ public class Elevator extends Thread {
     }
 
     private void handleScheRequset() {
-        ScheRequest req = scheduleReq.getScheRequest();
+        ScheRequest req = subQueue.getScheRequest();
         if (req == null) {
             return;
         }
@@ -122,13 +119,7 @@ public class Elevator extends Thread {
             (targetFloor < currentFloor ? -1 : 0);// 确定运行方向：上行为 1，下行为 -1；若已在目标楼层则设为 0
         ElevatorStorage.getInstance().updateShadow(id, 
             currentFloor, tempDirection, 0, req); // 更新影子电梯状态
-        scheduleOpen(tempDirection, targetFloor); // 如果电梯内已有乘客，开门
-        try {
-            sleep(400); // 开门等待0.4s
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        scheduleClose(tempDirection, targetFloor); // 检查是否有候选乘客上电梯
+        scheduleOpenAndClose(tempDirection, targetFloor); // 如果电梯内已有乘客，开门
         TimableOutput.println(String.format("SCHE-BEGIN-%d", id)); // 保证门已关闭后，开始临时调度
         lastTime = System.currentTimeMillis(); // 更新时间
         final double originalSpeed = speed; // 保存原始速度
@@ -158,7 +149,7 @@ public class Elevator extends Thread {
         TimableOutput.println(String.format("CLOSE-%s-%d", curFloorStr, id));
         TimableOutput.println(String.format("SCHE-END-%d", id));
         lastTime = System.currentTimeMillis(); // 更新时间
-        scheduleReq.setScheRequest(null); // 处理完请求后，清空请求
+        subQueue.setScheRequest(null); // 处理完请求后，清空请求
         mainQueue.subScheRequestCount();
     }
 
@@ -168,7 +159,7 @@ public class Elevator extends Thread {
         return (type == 'F') ? num : -num;
     }
 
-    private void scheduleOpen(int tempDirection, int targetFloor) {
+    private void scheduleOpenAndClose(int tempDirection, int targetFloor) {
         boolean needOpen = false;
         for (Person p : persons) {
             int dest = p.getToInt();
@@ -183,6 +174,7 @@ public class Elevator extends Thread {
         }
         if (needOpen) { // 若需要下乘客，则开门让不满足条件的乘客下电梯
             TimableOutput.println(String.format("OPEN-%s-%d",curFloorStr, id));
+            lastTime = System.currentTimeMillis(); // 更新时间
             Iterator<Person> iterator = persons.iterator();
             while (iterator.hasNext()) {
                 Person p = iterator.next();
@@ -196,19 +188,24 @@ public class Elevator extends Thread {
                     mainQueue.addPersonRequest(p); // 将乘客放回主队列
                 }
             }
+            long remainingTime = 400 - System.currentTimeMillis() + lastTime;
+            if (remainingTime > 0) {
+                try {
+                    wait(remainingTime); // 保持开门400ms
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            int capacity = maxPersonNum - personsIn; // 计算电梯可用容量
+            ArrayList<Person> candidates = subQueue.getMatchingCandidates(currentFloor, 
+                tempDirection, targetFloor, capacity); // 从等待队列获取所有符合条件的候选乘客
+            for (Person p : candidates) { // 遍历候选乘客
+                printInRequest(p); // 输出接收请求信息
+                persons.add(p); // 将乘客加入电梯内部队列
+                personsIn++; // 更新电梯内人数
+            }
+            TimableOutput.println(String.format("CLOSE-%s-%d", curFloorStr, id)); // 输出关闭电梯门信息
         }
-    }
-
-    private void scheduleClose(int tempDirection, int targetFloor) { // 封装后的临时调度关门方法
-        int capacity = maxPersonNum - personsIn; // 计算电梯可用容量
-        ArrayList<Person> candidates = subQueue.getMatchingCandidates(currentFloor, 
-            tempDirection, targetFloor, capacity); // 从等待队列获取所有符合条件的候选乘客
-        for (Person p : candidates) { // 遍历候选乘客
-            printInRequest(p); // 输出接收请求信息
-            persons.add(p); // 将乘客加入电梯内部队列
-            personsIn++; // 更新电梯内人数
-        }
-        TimableOutput.println(String.format("CLOSE-%s-%d", curFloorStr, id)); // 输出关闭电梯门信息
     }
 
     private void scheduleMove(int tempDirection, int targetFloor, int floor) {

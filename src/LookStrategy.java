@@ -4,21 +4,18 @@ public class LookStrategy {
 
     private final SubQueue subQueue;
     private final ArrayList<Person> persons;
-    private final ScheduleReq scheduleReq;
     private int personsIn;
     private final int maxPersonNum = 6;
 
-    public LookStrategy(SubQueue subQueue, ArrayList<Person> persons, 
-        ScheduleReq scheduleReq, int personsIn) {
+    public LookStrategy(SubQueue subQueue, ArrayList<Person> persons, int personsIn) {
         this.subQueue = subQueue;
         this.persons = persons;
-        this.scheduleReq = scheduleReq;
         this.personsIn = personsIn;
     }
 
     public Advice getAdvice(int currentFloor, int direction, int personsIn) {
         this.personsIn = personsIn;
-        if (scheduleReq.hasScheRequest()) {
+        if (subQueue.hasScheRequest()) {
             return Advice.SCHE; // 如果有临时调度请求，优先处理临时调度请求
         }
         if (hasPersonOut(currentFloor) || hasPersonIn(currentFloor, direction)) {

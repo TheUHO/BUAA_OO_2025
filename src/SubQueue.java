@@ -39,10 +39,8 @@ public class SubQueue {
     }
 
     public synchronized ScheRequest getScheRequest() {
-        ScheRequest temp = scheRequest;
-        scheRequest = null;
         notifyAll();
-        return temp;
+        return scheRequest;
     }
 
     public synchronized boolean hasScheRequest() { // 判断是否存在临时调度请求
