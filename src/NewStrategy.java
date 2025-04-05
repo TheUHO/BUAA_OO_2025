@@ -23,10 +23,9 @@ public class NewStrategy { // 新策略：LOOK+ALS
             return Advice.SCHE;
         }
         // 电梯空闲状态选择主请求
-        if (personsIn == 0 && mainRequestRef.get() == null) {
+        if (direction == 0) {
             Person p = subQueue.getPrimaryRequest();
             if (p != null) {
-                mainRequestRef.set(p); // 设置主请求
                 return Advice.MOVE;
             } else {
                 return subQueue.isEnd() ? Advice.OVER : Advice.WAIT;
