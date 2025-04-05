@@ -234,7 +234,6 @@ public class Elevator extends Thread {
             for (Person p : candidates) { // 遍历候选乘客
                 printInRequest(p); // 输出接收请求信息
                 persons.add(p); // 将乘客加入电梯内部队列
-                personsIn++; // 更新电梯内人数
             }
             TimableOutput.println(String.format("CLOSE-%s-%d", curFloorStr, id)); // 输出关闭电梯门信息
             lastTime = System.currentTimeMillis(); // 更新时间
