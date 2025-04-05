@@ -2,8 +2,6 @@ import com.oocourse.elevator2.TimableOutput;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
-
-import com.oocourse.elevator2.Request;
 import com.oocourse.elevator2.ScheRequest;
 
 public class Elevator extends Thread {
@@ -175,6 +173,7 @@ public class Elevator extends Thread {
         TimableOutput.println(String.format("CLOSE-%s-%d", curFloorStr, id));
         TimableOutput.println(String.format("SCHE-END-%d", id));
         lastTime = System.currentTimeMillis(); // 更新时间
+        direction = 0; // 设置电梯方向为0，表示等待
         subQueue.setScheRequest(null); // 处理完请求后，清空请求
         mainQueue.subScheRequestCount();
     }
