@@ -42,11 +42,11 @@ public class Elevator extends Thread {
             if (direction == 0) {
                 initialize(); // 初始化电梯状态
             }
-            System.out.println("Elevator: " + id + " " + advice + " at " +
-                currentFloor + " d:" + direction + " with p:" + personsIn + " main: " +
-                ((mainRequest.get() == null) ? "null" : mainRequest.get().getPersonId()));
-            System.out.println("MainQueue: " + mainQueue.getPassengerCount() + " " +
-                mainQueue.getScheRequestCount() + " " + mainQueue.isAllEnd());
+            // System.out.println("Elevator: " + id + " " + advice + " at " +
+            //     currentFloor + " d:" + direction + " with p:" + personsIn + " main: " +
+            //     ((mainRequest.get() == null) ? "null" : mainRequest.get().getPersonId()));
+            // System.out.println("MainQueue: " + mainQueue.getPassengerCount() + " " +
+            //     mainQueue.getScheRequestCount() + " " + mainQueue.isAllEnd());
             switch (advice) {
                 case SCHE: // 临时调度请求
                     handleScheRequset();
