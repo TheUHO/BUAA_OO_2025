@@ -42,11 +42,11 @@ public class Elevator extends Thread {
             if (direction == 0) {
                 initialize(); // 初始化电梯状态
             }
-            // System.out.println("Elevator: " + id + " " + advice + " at " +
-            //     currentFloor + " d:" + direction + " with p:" + personsIn + " main: " +
-            //     ((mainRequest.get() == null) ? "null" : mainRequest.get().getPersonId()));
-            // System.out.println("MainQueue: " + mainQueue.getPassengerCount() + " " +
-            //     mainQueue.getScheRequestCount() + " " + mainQueue.isAllEnd());
+            System.out.println("Elevator: " + id + " " + advice + " at " +
+                currentFloor + " d:" + direction + " with p:" + personsIn + " main: " +
+                ((mainRequest.get() == null) ? "null" : mainRequest.get().getPersonId()));
+            System.out.println("MainQueue: " + mainQueue.getPassengerCount() + " " +
+                mainQueue.getScheRequestCount() + " " + mainQueue.isAllEnd());
             switch (advice) {
                 case SCHE: // 临时调度请求
                     handleScheRequset();
@@ -78,7 +78,20 @@ public class Elevator extends Thread {
         Person req = subQueue.getPrimaryRequest(); // 获取主请求
         if (req != null) {
             mainRequest.set(req); // 设置主请求
-            direction = (req.getFromInt() >= currentFloor) ? 1 : -1; // 确定初始方向
+            int targetFloor = req.getFromInt();
+            if (targetFloor > currentFloor) {
+                direction = 1; // 上行
+            } else if (targetFloor < currentFloor) {
+                direction = -1; // 下行
+            } else { // 以在目标楼层
+                if (req.getToInt() > currentFloor) {
+                    direction = 1; // 上行
+                } else if (req.getToInt() < currentFloor) {
+                    direction = -1; // 下行
+                } else {
+                    direction = 0; // 电梯不动
+                }
+            }
             printReceiveRequest(req);
         } else {
             direction = 0; // 没有请求，电梯不动
