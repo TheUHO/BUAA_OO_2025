@@ -18,25 +18,19 @@ public class MainQueue {
     }
 
     public synchronized Person getPersonRequest() { // 分配任务
-        while (persons.isEmpty() && !this.inputEnd) {
+        while (persons.isEmpty() && !this.isAllEnd()) {
             try {
                 wait();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        if (persons.isEmpty()) {
+        if (this.isAllEnd()) {
             return null;
         }
         Person person = persons.get(0);
-        persons.remove(0);
-        notifyAll();    
+        persons.remove(0);   
         return person;
-    }
-
-    public synchronized boolean isEmpty() {
-        notifyAll();
-        return persons.isEmpty();
     }
 
     public synchronized boolean isInputEnd() {
