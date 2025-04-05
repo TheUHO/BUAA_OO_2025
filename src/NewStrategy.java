@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class NewStrategy { // 新策略：LOOK+ALS
     private final SubQueue subQueue; // 等待队列
@@ -6,41 +7,46 @@ public class NewStrategy { // 新策略：LOOK+ALS
     private final ScheduleReq scheduleReq; // 临时调度请求
     private int personsIn;
     private final int maxPersonNum = 6;
-    private Person mainRequest; // 主请求
+    private AtomicReference<Person> mainRequestRef;
 
     public NewStrategy(SubQueue subQueue, ArrayList<Person> persons, ScheduleReq scheduleReq, 
-        int personsIn, Person mainRequest) {
-        this.mainRequest = mainRequest; // 初始化主请求
+        int personsIn, AtomicReference<Person> mainRequestRef) {
+        this.mainRequestRef = mainRequestRef; // 主请求
         this.subQueue = subQueue; // 初始化等待队列
         this.persons = persons; // 初始化电梯内乘客列表
         this.scheduleReq = scheduleReq; // 初始化临时调度请求
         this.personsIn = personsIn;
     }
 
-    public synchronized Advice getAdvice(int currentFloor, int direction, int personsIn) {
+    public Advice getAdvice(int currentFloor, int direction, int personsIn) {
         this.personsIn = personsIn;
         // 处理临时调度请求
-        if (scheduleReq != null) {
+        if (scheduleReq.hasScheRequest()) {
             return Advice.SCHE;
         }
         // 电梯空闲状态选择主请求
-        if (personsIn == 0 && mainRequest == null) {
-            mainRequest = subQueue.getPrimaryRequest();
-            if (mainRequest != null) {
+        if (personsIn == 0 && mainRequestRef.get() == null) {
+            Person p = subQueue.getPrimaryRequest();
+            if (p != null) {
+                mainRequestRef.set(p); // 设置主请求
                 return Advice.MOVE;
             } else {
                 return subQueue.isEnd() ? Advice.OVER : Advice.WAIT;
             }
-        }
-        // 常规运行逻辑
-        if (hasPersonOut(currentFloor) || hasPersonIn(currentFloor, direction)) {
-            return Advice.OPEN;
-        }
-
-        if (hasRequestAhead(currentFloor, direction)) {
-            return Advice.MOVE;
+        } else if (hasPersonOut(currentFloor) || hasPersonIn(currentFloor, direction)) {
+            return Advice.OPEN; // 如果电梯内有乘客到达目的楼层，或者当前层有等待乘客且方向相同
+        } else if (personsIn > 0) {
+            return Advice.MOVE; // 如果电梯内有乘客，继续前进
+        } else if (!subQueue.isEmpty()) {
+            if (hasRequestAhead(currentFloor, direction)) {
+                return Advice.MOVE; // 如果当前方向前方有请求，继续前进
+            } else {
+                return Advice.REVERSE; // 如果当前方向前方无请求，改变方向
+            }
+        } else if (subQueue.isEnd()) {
+            return Advice.OVER; // 如果请求队列为空，且输入结束，结束电梯线程
         } else {
-            return personsIn > 0 ? Advice.MOVE : Advice.REVERSE;
+            return Advice.WAIT; // 如果电梯内无乘客，外部无请求，等待新请求
         }
     }
 

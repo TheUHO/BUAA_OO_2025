@@ -1,6 +1,7 @@
 import com.oocourse.elevator2.TimableOutput;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 import com.oocourse.elevator2.ScheRequest;
 
 public class Elevator extends Thread {
@@ -12,13 +13,13 @@ public class Elevator extends Thread {
     private int personsIn;
     private int direction;
     private final ArrayList<Person> persons;
-    private final ScheduleReq scheduleReq;
+    private ScheduleReq scheduleReq;
     private final LookStrategy strategy;
     private final NewStrategy newStrategy;
     private final int maxPersonNum = 6;
     private long lastTime; // 上次运行时间
     private double speed = 0.4; // 电梯速度
-    private Person mainRequest; // 主请求
+    private AtomicReference<Person> mainRequest; 
 
     public Elevator(int id, MainQueue mainQueue, SubQueue subQueue, ScheduleReq scheduleReq) {
         this.id = id;
@@ -30,9 +31,10 @@ public class Elevator extends Thread {
         this.direction = 0; // 如何确定初始方向？
         this.persons = new ArrayList<>();
         this.scheduleReq = scheduleReq;
-        this.mainRequest = null;
+        this.mainRequest = new AtomicReference<>(null);
         this.strategy = new LookStrategy(subQueue, persons, scheduleReq, personsIn);
-        this.newStrategy = new NewStrategy(subQueue, persons, scheduleReq, personsIn, mainRequest);
+        this.newStrategy = new NewStrategy(subQueue, persons, scheduleReq, 
+            personsIn, mainRequest);
         this.lastTime = System.currentTimeMillis();
     }
 
@@ -43,8 +45,8 @@ public class Elevator extends Thread {
             if (direction == 0) {
                 initialize(); // 初始化电梯状态
             }
-            //System.out.println("Elevator " + id + " " + advice + " " +
-            //currentFloor + " " + direction + " " + personsIn);
+            // System.out.println("Elevator " + id + " " + advice + " at " +
+            //     currentFloor + " d:" + direction + " with p:" + personsIn);
             switch (advice) {
                 case SCHE: // 临时调度请求
                     handleScheRequset();
@@ -73,11 +75,12 @@ public class Elevator extends Thread {
     }
 
     private void initialize() {
-        if (mainRequest != null) {
-            direction = (mainRequest.getFromInt() >= currentFloor) ? 1 : -1; // 确定初始方向
-            printReceiveRequest(mainRequest);
+        Person req = mainRequest.get();
+        if (req != null) {
+            direction = (req.getFromInt() >= currentFloor) ? 1 : -1; // 确定初始方向
+            printReceiveRequest(req);
         } else {
-            direction = 1; // 默认向上
+            direction = 0; // 没有请求，电梯不动
         }
     }
 
@@ -91,8 +94,9 @@ public class Elevator extends Thread {
         TimableOutput.println(String.format("OUT-%s-%d-%s-%d", 
             outSign, person.getPersonId(), curFloorStr, id));
         if (outSign.equals("S")) {
-            if (mainRequest != null && person.getPersonId() == mainRequest.getPersonId()) {
-                mainRequest = null;
+            if (mainRequest.get() != null && 
+                person.getPersonId() == mainRequest.get().getPersonId()) {
+                mainRequest.set(null);
             }
             mainQueue.subPassengerCount();
         }
@@ -100,7 +104,7 @@ public class Elevator extends Thread {
     }
 
     private void printInRequest(Person person) {
-        if (!person.equals(mainRequest)) {
+        if (!person.equals(mainRequest.get())) {
             printReceiveRequest(person); // 打印接收请求
         }
         TimableOutput.println(String.format("IN-%d-%s-%d", person.getPersonId(), curFloorStr, id));
@@ -313,6 +317,8 @@ public class Elevator extends Thread {
 
     private void waitRequest() {
         direction = 0; // 设置电梯方向为0，表示等待
+        ElevatorStorage.getInstance().updateShadow(id, 
+            currentFloor, direction, personsIn, null); // 更新影子电梯状态
         synchronized (subQueue) {
             try {
                 // 调用等待方法，使当前线程挂起

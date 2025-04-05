@@ -6,11 +6,11 @@ import java.util.HashMap;
 
 public class InputThread extends Thread {
     private final MainQueue mainQueue;
-    private final HashMap<Integer, ScheduleReq> scheduleReqs;
+    private final HashMap<Integer, SubQueue> subQueues;
 
-    public InputThread(MainQueue mainQueue, HashMap<Integer, ScheduleReq> scheduleReqs) {
+    public InputThread(MainQueue mainQueue, HashMap<Integer, SubQueue> subQueues) {
         this.mainQueue = mainQueue;
-        this.scheduleReqs = scheduleReqs;
+        this.subQueues = subQueues;
     }
 
     @Override
@@ -29,8 +29,8 @@ public class InputThread extends Thread {
             } else if (request instanceof ScheRequest) {
                 ScheRequest scheRequest = (ScheRequest) request;
                 int elevatorId = scheRequest.getElevatorId();
-                ScheduleReq scheduleReq = scheduleReqs.get(elevatorId);
-                scheduleReq.setScheRequest(scheRequest);
+                SubQueue subQueue = subQueues.get(elevatorId);
+                subQueue.setScheRequest(scheRequest);
                 mainQueue.addScheRequestCount();
             }
         }

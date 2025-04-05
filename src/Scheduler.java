@@ -18,7 +18,7 @@ public class Scheduler extends Thread {
         int bestPerformance = Integer.MAX_VALUE;
         int bestElevatorId = -1;
         for (ShadowElevator shadow : shadows) {
-            int perf = shadow.getEstimatePerformance(person); // 简单估值：距离绝对值
+            int perf = shadow.getEstimatePerformance(person);
             if (perf < bestPerformance) {
                 bestPerformance = perf;
                 bestElevatorId = shadow.getElevatorId();

@@ -1,10 +1,13 @@
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import com.oocourse.elevator2.ScheRequest;
+
 public class SubQueue {
 
     private ArrayList<Person> persons = new ArrayList<>();
     private boolean end = false;
+    private ScheRequest scheRequest = null;
 
     public synchronized ArrayList<Person> getPersons() {
         notifyAll();
@@ -28,6 +31,23 @@ public class SubQueue {
     public synchronized void setEnd() {
         end = true;
         notifyAll();
+    }
+
+    public synchronized void setScheRequest(ScheRequest scheRequest) {
+        this.scheRequest = scheRequest;
+        notifyAll();
+    }
+
+    public synchronized ScheRequest getScheRequest() {
+        ScheRequest temp = scheRequest;
+        scheRequest = null;
+        notifyAll();
+        return temp;
+    }
+
+    public synchronized boolean hasScheRequest() { // 判断是否存在临时调度请求
+
+        return scheRequest != null;
     }
 
     public synchronized Person getPersonIn(int floor, int direction) { // 获取某层某方向的乘客

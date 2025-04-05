@@ -18,7 +18,7 @@ public class LookStrategy {
 
     public Advice getAdvice(int currentFloor, int direction, int personsIn) {
         this.personsIn = personsIn;
-        if (scheduleReq != null) {
+        if (scheduleReq.hasScheRequest()) {
             return Advice.SCHE; // 如果有临时调度请求，优先处理临时调度请求
         }
         if (hasPersonOut(currentFloor) || hasPersonIn(currentFloor, direction)) {

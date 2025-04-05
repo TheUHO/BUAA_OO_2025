@@ -24,4 +24,8 @@ public class ScheduleReq {
         notifyAll();
         return temp;
     }
+
+    public synchronized boolean hasScheRequest() { // 判断是否存在临时调度请求
+        return scheRequest != null;
+    }
 }

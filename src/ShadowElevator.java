@@ -33,7 +33,7 @@ public class ShadowElevator {
         if (direction != 0 && (pf - currentFloor) * direction < 0) {
             reversalPenalty = 2.0; // 加 2 秒反转延迟
         }
-        double totalTime;
+        double totalTime = 0.0;
         if (scheduleReq != null) { // 电梯处于临时调度中
             String floorStr = scheduleReq.getToFloor();
             char type = floorStr.charAt(0);
