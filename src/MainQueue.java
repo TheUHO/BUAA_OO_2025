@@ -48,7 +48,6 @@ public class MainQueue {
 
     public synchronized void addPassengerCount() {
         passengerCount++;
-        notifyAll();
     }
 
     public synchronized int getPassengerCount() {
@@ -62,7 +61,6 @@ public class MainQueue {
 
     public synchronized void addScheRequestCount() {
         scheRequestCount++;
-        notifyAll();
     }
 
     public synchronized int getScheRequestCount() {

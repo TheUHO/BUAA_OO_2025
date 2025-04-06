@@ -123,6 +123,7 @@ public class Elevator extends Thread {
             printReceiveRequest(person); // 打印接收请求
         }
         TimableOutput.println(String.format("IN-%d-%s-%d", person.getPersonId(), curFloorStr, id));
+        lastTime = System.currentTimeMillis(); // 更新时间
         personsIn++;
     }
 
@@ -264,6 +265,7 @@ public class Elevator extends Thread {
 
     private void openAndClose() {
         TimableOutput.println(String.format("OPEN-%s-%d", curFloorStr, id)); // 开门
+        lastTime = System.currentTimeMillis();
         Iterator<Person> iterator = persons.iterator();
         while (iterator.hasNext()) {
             Person p = iterator.next();
@@ -354,6 +356,7 @@ public class Elevator extends Thread {
                 handleScheRequset();
                 return;
             }
+            return;
         } else if (advice == Advice.OPEN) {
             openAndClose(); // 打开并关闭
             return;
@@ -377,6 +380,9 @@ public class Elevator extends Thread {
         ElevatorStorage.getInstance().updateShadow(id, 
             currentFloor, direction, personsIn, null); // 更新影子电梯状态
         synchronized (subQueue) {
+            if (subQueue.isEnd()) {
+                return; // 如果请求队列已结束，则不再等待
+            }
             try {
                 // 调用等待方法，使当前线程挂起
                 subQueue.wait();
@@ -384,10 +390,10 @@ public class Elevator extends Thread {
                 Thread.currentThread().interrupt();
             }
         }
-        try {
-            sleep(5);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        // try {
+        //     sleep(5);
+        // } catch (InterruptedException e) {
+        //     Thread.currentThread().interrupt();
+        // }
     }
 }
