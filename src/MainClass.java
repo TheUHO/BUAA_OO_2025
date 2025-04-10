@@ -16,7 +16,7 @@ public class MainClass {
         }
         Scheduler scheduler = new Scheduler(mainQueue, subQueues, elevators);
         scheduler.start();
-        InputThread inputThread = new InputThread(mainQueue, subQueues);
+        InputThread inputThread = new InputThread(mainQueue, subQueues, elevators);
         inputThread.start();
     }
 }

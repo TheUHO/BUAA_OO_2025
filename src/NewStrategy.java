@@ -7,6 +7,10 @@ public class NewStrategy { // 新策略：LOOK+ALS
     private int personsIn;
     private final int maxPersonNum = 6;
     private AtomicReference<Person> mainRequestRef;
+    private boolean hasUpdated = false; // 是否更新过请求
+    private int transferFloor = 0; // 换乘楼层
+    private boolean isA = false; // 是否是电梯A
+    private boolean isB = false; // 是否是电梯B
 
     public NewStrategy(SubQueue subQueue, ArrayList<Person> persons, 
         int personsIn, AtomicReference<Person> mainRequestRef) {
@@ -16,8 +20,16 @@ public class NewStrategy { // 新策略：LOOK+ALS
         this.personsIn = personsIn;
     }
 
-    public Advice getAdvice(int currentFloor, int direction, int personsIn) {
+    public Advice getAdvice(int currentFloor, int direction, int personsIn, 
+        boolean hasUpdated, int transferFloor, boolean isA, boolean isB) {
         this.personsIn = personsIn;
+        this.hasUpdated = hasUpdated;
+        this.transferFloor = transferFloor;
+        this.isA = isA;
+        this.isB = isB;
+        if (subQueue.hasUpdateRequest()) { // 处理更新请求
+            return Advice.UPDATE;
+        }
         if (subQueue.hasScheRequest()) { // 处理临时调度请求
             return Advice.SCHE;
         }

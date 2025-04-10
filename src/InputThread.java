@@ -9,10 +9,13 @@ import java.util.HashMap;
 public class InputThread extends Thread {
     private final MainQueue mainQueue;
     private final HashMap<Integer, SubQueue> subQueues;
+    private final HashMap<Integer, Elevator> elevators;
 
-    public InputThread(MainQueue mainQueue, HashMap<Integer, SubQueue> subQueues) {
+    public InputThread(MainQueue mainQueue, HashMap<Integer, SubQueue> subQueues, 
+        HashMap<Integer, Elevator> elevators) {
         this.mainQueue = mainQueue;
         this.subQueues = subQueues;
+        this.elevators = elevators;
     }
 
     @Override
@@ -38,6 +41,11 @@ public class InputThread extends Thread {
                 UpdateRequest updateRequest = (UpdateRequest) request;
                 int elevatorAId = updateRequest.getElevatorAId();
                 int elevatorBId = updateRequest.getElevatorBId();
+                Coordinator coordinator = new Coordinator(elevatorAId, elevatorBId);
+                Elevator elevatorA = elevators.get(elevatorAId);
+                Elevator elevatorB = elevators.get(elevatorBId);
+                elevatorA.setCoordinator(coordinator);
+                elevatorB.setCoordinator(coordinator);
                 SubQueue subQueueA = subQueues.get(elevatorAId);
                 SubQueue subQueueB = subQueues.get(elevatorBId);
                 subQueueA.setUpdateRequest(updateRequest);
