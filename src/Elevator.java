@@ -153,12 +153,13 @@ public class Elevator extends Thread {
         if (currentFloor == 0) { currentFloor += (isA ? 1 : -1); } // 避免出现 B0 层
         curFloorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
         speed = 0.2; // 调整运行速度为 0.2 s/层
+        direction = 0; // 设定为静止，下次初始化给予主需求和方向
         hasUpdated = true;
         synchronized (subQueue) {
-            Person unablPerson = subQueue.getUnableRequest(isA, isB, transferFloor); // 清除等待队列中的无效请求
-            while (unablPerson != null) {
-                mainQueue.addPersonRequest(unablPerson); // 将无效请求放回主队列
-                unablPerson = subQueue.getUnableRequest(isA, isB, transferFloor);
+            Person unablePerson = subQueue.getUnableRequest(isA, isB, transferFloor);
+            while (unablePerson != null) { // 清除等待队列中的无效请求
+                mainQueue.addPersonRequest(unablePerson); // 将无效请求放回主队列
+                unablePerson = subQueue.getUnableRequest(isA, isB, transferFloor);
             }
         }
         subQueue.setUpdateRequest(null); // 清除等待队列中的更新请求
