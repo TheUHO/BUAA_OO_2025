@@ -50,6 +50,7 @@ public class InputThread extends Thread {
                 SubQueue subQueueB = subQueues.get(elevatorBId);
                 subQueueA.setUpdateRequest(updateRequest);
                 subQueueB.setUpdateRequest(updateRequest);
+                mainQueue.addUpdateCount();
             }
         }
     }

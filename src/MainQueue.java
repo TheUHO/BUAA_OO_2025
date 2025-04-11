@@ -5,6 +5,7 @@ public class MainQueue {
     private ArrayList<Person> persons = new ArrayList<>();
     private int passengerCount = 0;
     private int scheRequestCount = 0;
+    private int updateCount = 0;
     private boolean inputEnd = false;
 
     public synchronized ArrayList<Person> getPersons() {
@@ -42,8 +43,8 @@ public class MainQueue {
         notifyAll();
     }
 
-    public synchronized boolean isAllEnd() {
-        return inputEnd && passengerCount == 0 && scheRequestCount == 0; // 所有任务都完成
+    public synchronized boolean isAllEnd() { // 所有任务都完成
+        return inputEnd && passengerCount == 0 && scheRequestCount == 0 && updateCount == 0;
     }
 
     public synchronized void addPassengerCount() {
@@ -69,6 +70,19 @@ public class MainQueue {
 
     public synchronized void subScheRequestCount() {
         scheRequestCount--;
+        notifyAll();
+    }
+
+    public synchronized void addUpdateCount() {
+        updateCount++;
+    }
+
+    public synchronized int getUpdateCount() {
+        return updateCount;
+    }
+
+    public synchronized void subUpdateCount() {
+        updateCount--;
         notifyAll();
     }
 }
