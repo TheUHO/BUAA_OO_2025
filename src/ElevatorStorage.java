@@ -16,15 +16,15 @@ public class ElevatorStorage {
         return instance;
     }
     
-    public synchronized void updateShadow(int elevatorId, int currentFloor,
-        int direction, int personsIn, ScheRequest scheRequest) {
+    public synchronized void updateShadow(int elevatorId, int currentFloor, int direction, 
+        int personsIn, ScheRequest scheRequest, boolean isA, boolean isB, int transferFloor) {
         ShadowElevator shadow = shadowElevators.get(elevatorId);
         if (shadow == null) {
             shadow = new ShadowElevator(elevatorId, currentFloor, 
                 direction, personsIn, scheRequest);
             shadowElevators.put(elevatorId, shadow);
         } else {
-            shadow.update(currentFloor, direction, personsIn, scheRequest);
+            shadow.update(currentFloor, direction, personsIn, scheRequest, isA, isB, transferFloor);
         }
     }
     

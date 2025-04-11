@@ -61,6 +61,21 @@ public class NewStrategy { // 新策略：LOOK+ALS
         if (personsIn == 0) {
             return false; // 如果电梯内无乘客，无需判断是否有人到达当前楼层
         }
+        if (hasUpdated && currentFloor == transferFloor) {
+            if (isA) {
+                for (Person person : persons) {
+                    if (person.getToInt() <= currentFloor) {
+                        return true; // 如果电梯内有乘客到达目的楼层
+                    }
+                }
+            } else if (isB) {
+                for (Person person : persons) {
+                    if (person.getToInt() >= currentFloor) {
+                        return true; // 如果电梯内有乘客到达目的楼层
+                    }
+                }
+            }
+        }
         for (Person person : persons) {
             if (person.getToInt() == currentFloor) {
                 return true; // 如果电梯内有乘客到达目的楼层
