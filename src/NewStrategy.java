@@ -33,7 +33,7 @@ public class NewStrategy { // 新策略：LOOK+ALS
         if (subQueue.hasScheRequest()) { // 处理临时调度请求
             return Advice.SCHE;
         }
-        if (direction == 0 && mainRequestRef.get() == null) { // 电梯空闲状态选择主请求
+        if (direction == 0) { // 电梯空闲状态选择主请求
             Person p = subQueue.getPrimaryRequest();
             if (p != null) {
                 return Advice.MOVE;
