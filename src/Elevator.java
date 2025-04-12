@@ -158,11 +158,10 @@ public class Elevator extends Thread {
         mainRequest.set(null); // 清空主请求
         hasUpdated = true;
         lastTime = System.currentTimeMillis(); // 更新时间
-        Person unablePerson = subQueue.getUnableRequest(isA, isB, transferFloor);
-        while (unablePerson != null) { // 清除等待队列中的无效请求
-            mainQueue.addPersonRequest(unablePerson); // 将无效请求放回主队列
-            // System.out.println("电梯 " + id + " 将无效请求 " + unablePerson + " 放回主队列");
-            unablePerson = subQueue.getUnableRequest(isA, isB, transferFloor);
+        Person person = subQueue.getAndCleanRequest(); // 清除等待队列中的请求
+        while (person != null) {
+            mainQueue.addPersonRequest(person); // 放回主队列
+            person = subQueue.getAndCleanRequest();
         }
         subQueue.setUpdateRequest(null); // 清除等待队列中的更新请求
         ElevatorStorage.getInstance().updateShadow(id, currentFloor, direction, 
@@ -201,6 +200,11 @@ public class Elevator extends Thread {
         scheduleOpenAndClose(tempDirection, targetFloor); // 如果电梯内已有乘客，开门
         TimableOutput.println(String.format("SCHE-BEGIN-%d", id)); // 保证门已关闭后，开始临时调度
         lastTime = System.currentTimeMillis(); // 更新时间
+        Person person = subQueue.getAndCleanRequest(); // 清除等待队列中的请求
+        while (person != null) {
+            mainQueue.addPersonRequest(person); // 放回主队列
+            person = subQueue.getAndCleanRequest();
+        }
         final double originalSpeed = speed; // 保存原始速度
         speed = tempSpeed;
         int tempFloor = currentFloor;
@@ -358,8 +362,7 @@ public class Elevator extends Thread {
     }
 
     private void move() {
-        if (mainRequest.get() == null && personsIn == 0 && 
-            !(hasUpdated && currentFloor == transferFloor)) {
+        if (mainRequest.get() == null && personsIn == 0) {
             Person person = subQueue.getPrimaryRequest(); // 获取主请求
             if (person != null) {
                 mainRequest.set(person); // 获取主请求
@@ -368,6 +371,12 @@ public class Elevator extends Thread {
                 direction = 0; // 没有请求，电梯不动
                 return;
             }
+        }
+        if (direction == 0) { // 如果电梯静止，设置方向
+            if (mainRequest.get() == null) { return; } // 如果没有主请求，返回
+            direction = (mainRequest.get().getFromInt() > currentFloor) ? 1 : 
+                        (mainRequest.get().getFromInt() < currentFloor) ? -1 : 0;
+            if (direction == 0) { return; }
         }
         int nextFloor = currentFloor + direction;
         if (nextFloor == 0) {
@@ -432,19 +441,29 @@ public class Elevator extends Thread {
 
     private void waitRequest() {
         if (hasUpdated && currentFloor == transferFloor) {
-            if (isA) {
-                direction = 1; // 电梯A在换乘层等待，方向向上
-                move(); // 离开换乘层
-            } else if (isB) {
-                direction = -1; // 电梯B在换乘层等待，方向向下
-                move(); // 离开换乘层
+            long remainingTime = (long)(speed * 1000) - (System.currentTimeMillis() - lastTime);
+            if (remainingTime > 0) {
+                try { synchronized (this) { wait(remainingTime); } } 
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); } // 中断
             }
-            return;
+            if (isA) {
+                currentFloor = transferFloor + 1; // 更新当前楼层
+                if (currentFloor == 0) { currentFloor += 1; } // 避免出现B0 层
+                curFloorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
+            } else if (isB) {
+                currentFloor = transferFloor - 1; // 更新当前楼层
+                if (currentFloor == 0) { currentFloor -= 1; } // 避免出现B0 层
+                curFloorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
+            }
+            TimableOutput.println(String.format("ARRIVE-%s-%d", curFloorStr, id)); // 输出到达信息
+            coordinator.releaseTransferFloor(); // 离开换乘层，释放换乘层
+            lastTime = System.currentTimeMillis(); // 更新时间
         }
         direction = 0; // 设置电梯方向为0，表示等待
         ElevatorStorage.getInstance().updateShadow(id, currentFloor, direction, 
             personsIn, null, isA, isB, transferFloor); // 更新影子电梯状态
         synchronized (subQueue) {
+            if (subQueue.hasPersonRequest()) { return; } // 如果有乘客请求，则不再等待
             if (subQueue.isEnd()) { return; } // 如果请求队列已结束，则不再等待
             try { subQueue.wait(); } 
             catch (InterruptedException e) { Thread.currentThread().interrupt(); } // 调用等待方法，使当前线程挂起
