@@ -48,7 +48,7 @@ public class Elevator extends Thread {
         while (true) {
             Advice advice = newStrategy.getAdvice(currentFloor, direction, 
                 personsIn, hasUpdated, transferFloor, isA, isB);
-            if (direction == 0) {
+            if (direction == 0 && mainRequest.get() == null) {
                 initialize(); // 初始化电梯状态
             }
             // System.out.println("Elevator: " + id + " " + advice + " at " +
@@ -137,6 +137,7 @@ public class Elevator extends Thread {
 
     private void update() {
         if (hasUpdated) { return; } // 如果已经更新过请求，则不再更新
+        mainRequest.set(null); // 清空主请求
         if (personsIn != 0) { cleanOpenAndClose(400); } // 如果电梯内有乘客，清空电梯内乘客
         UpdateRequest updateRequest = subQueue.getUpdateRequest(); // 获取更新请求
         int aid = updateRequest.getElevatorAId();
@@ -154,15 +155,18 @@ public class Elevator extends Thread {
         curFloorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
         speed = 0.2; // 调整运行速度为 0.2 s/层
         direction = 0; // 设定为静止，下次初始化给予主需求和方向
+        mainRequest.set(null); // 清空主请求
         hasUpdated = true;
-        synchronized (subQueue) {
-            Person unablePerson = subQueue.getUnableRequest(isA, isB, transferFloor);
-            while (unablePerson != null) { // 清除等待队列中的无效请求
-                mainQueue.addPersonRequest(unablePerson); // 将无效请求放回主队列
-                unablePerson = subQueue.getUnableRequest(isA, isB, transferFloor);
-            }
+        lastTime = System.currentTimeMillis(); // 更新时间
+        Person unablePerson = subQueue.getUnableRequest(isA, isB, transferFloor);
+        while (unablePerson != null) { // 清除等待队列中的无效请求
+            mainQueue.addPersonRequest(unablePerson); // 将无效请求放回主队列
+            // System.out.println("电梯 " + id + " 将无效请求 " + unablePerson + " 放回主队列");
+            unablePerson = subQueue.getUnableRequest(isA, isB, transferFloor);
         }
         subQueue.setUpdateRequest(null); // 清除等待队列中的更新请求
+        ElevatorStorage.getInstance().updateShadow(id, currentFloor, direction, 
+            personsIn, null, isA, isB, transferFloor); // 更新影子电梯状态
         if (isA) { mainQueue.subUpdateCount(); }
     }
 
@@ -187,6 +191,7 @@ public class Elevator extends Thread {
     private void handleScheRequset() {
         ScheRequest req = subQueue.getScheRequest();
         if (req == null) { return; } // 如果没有临时调度请求，则返回
+        mainRequest.set(null); // 清空主请求
         final int targetFloor = convertFloor(req.getToFloor());
         final double tempSpeed = req.getSpeed();
         int tempDirection = (targetFloor > currentFloor) ? 1 : 
@@ -208,6 +213,7 @@ public class Elevator extends Thread {
         TimableOutput.println(String.format("SCHE-END-%d", id));
         lastTime = System.currentTimeMillis(); // 更新时间
         direction = 0; // 设置电梯方向为0，表示等待
+        mainRequest.set(null); // 清空主请求
         subQueue.setScheRequest(null); // 处理完请求后，清空请求
         mainQueue.subScheRequestCount();
     }
@@ -305,6 +311,15 @@ public class Elevator extends Thread {
             printInRequest(p);
             persons.add(p);
         }
+        while (personsIn == maxPersonNum) { // 电梯已满
+            Person waitingCandidate = subQueue.getPersonIn(currentFloor, direction);
+            if (waitingCandidate == null) { break; } // 如果没有候选乘客，跳出循环
+            boolean replaced = tryReplaceLowestPassenger(waitingCandidate);
+            if (!replaced) { // 如果未满足替换条件，将等待乘客重新放回等待队列并跳出循环
+                subQueue.addPersonRequest(waitingCandidate);
+                break;
+            }
+        }
         ArrayList<Person> unmatchedPersons = new ArrayList<>(); // 存储未匹配的请求
         Person person = subQueue.getPersonIn(currentFloor, direction);
         while (person != null) {
@@ -321,6 +336,25 @@ public class Elevator extends Thread {
         }
         TimableOutput.println(String.format("CLOSE-%s-%d", curFloorStr, id));
         lastTime = System.currentTimeMillis(); // 更新时间
+    }
+
+    private boolean tryReplaceLowestPassenger(Person waitingCandidate) {
+        int minElevatorPriority = Integer.MAX_VALUE;
+        Person lowestP = null;
+        for (Person p : persons) {
+            if (p.getPriority() < minElevatorPriority) {
+                minElevatorPriority = p.getPriority();
+                lowestP = p;
+            }
+        }
+        if (waitingCandidate.getPriority() >= minElevatorPriority && lowestP != null) {
+            persons.remove(lowestP); // 移除优先级最低的乘客
+            printOutRequest(lowestP); // 输出被替换乘客下电梯信息
+            printInRequest(waitingCandidate); // 输出新乘客上电梯信息
+            persons.add(waitingCandidate); // 新乘客进入电梯
+            return true;
+        }
+        return false;
     }
 
     private void move() {
