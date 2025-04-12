@@ -48,7 +48,7 @@ public class Elevator extends Thread {
         while (true) {
             Advice advice = newStrategy.getAdvice(currentFloor, direction, 
                 personsIn, hasUpdated, transferFloor, isA, isB);
-            if (direction == 0 && mainRequest.get() == null) {
+            if (direction == 0) {
                 initialize(); // 初始化电梯状态
             }
             // System.out.println("Elevator: " + id + " " + advice + " at " +
@@ -137,7 +137,6 @@ public class Elevator extends Thread {
 
     private void update() {
         if (hasUpdated) { return; } // 如果已经更新过请求，则不再更新
-        mainRequest.set(null); // 清空主请求
         if (personsIn != 0) { cleanOpenAndClose(400); } // 如果电梯内有乘客，清空电梯内乘客
         UpdateRequest updateRequest = subQueue.getUpdateRequest(); // 获取更新请求
         int aid = updateRequest.getElevatorAId();
@@ -191,7 +190,6 @@ public class Elevator extends Thread {
     private void handleScheRequset() {
         ScheRequest req = subQueue.getScheRequest();
         if (req == null) { return; } // 如果没有临时调度请求，则返回
-        mainRequest.set(null); // 清空主请求
         final int targetFloor = convertFloor(req.getToFloor());
         final double tempSpeed = req.getSpeed();
         int tempDirection = (targetFloor > currentFloor) ? 1 : 
@@ -201,6 +199,11 @@ public class Elevator extends Thread {
         scheduleOpenAndClose(tempDirection, targetFloor); // 如果电梯内已有乘客，开门
         TimableOutput.println(String.format("SCHE-BEGIN-%d", id)); // 保证门已关闭后，开始临时调度
         lastTime = System.currentTimeMillis(); // 更新时间
+        Person person = subQueue.getAndCleanRequest(); // 清除等待队列中的请求
+        while (person != null) {
+            mainQueue.addPersonRequest(person); // 放回主队列
+            person = subQueue.getAndCleanRequest();
+        }
         final double originalSpeed = speed; // 保存原始速度
         speed = tempSpeed;
         int tempFloor = currentFloor;
@@ -432,13 +435,23 @@ public class Elevator extends Thread {
 
     private void waitRequest() {
         if (hasUpdated && currentFloor == transferFloor) {
-            if (isA) {
-                direction = 1; // 电梯A在换乘层等待，方向向上
-                move(); // 离开换乘层
-            } else if (isB) {
-                direction = -1; // 电梯B在换乘层等待，方向向下
-                move(); // 离开换乘层
+            long remainingTime = (long)(speed * 1000) - (System.currentTimeMillis() - lastTime);
+            if (remainingTime > 0) {
+                try { synchronized (this) { wait(remainingTime); } } 
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); } // 中断
             }
+            if (isA) {
+                currentFloor = transferFloor + 1; // 更新当前楼层
+                if (currentFloor == 0) { currentFloor += 1; } // 避免出现B0 层
+                curFloorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
+            } else if (isB) {
+                currentFloor = transferFloor - 1; // 更新当前楼层
+                if (currentFloor == 0) { currentFloor -= 1; } // 避免出现B0 层
+                curFloorStr = currentFloor > 0 ? "F" + currentFloor : "B" + (-currentFloor);
+            }
+            TimableOutput.println(String.format("ARRIVE-%s-%d", curFloorStr, id)); // 输出到达信息
+            coordinator.releaseTransferFloor(); // 离开换乘层，释放换乘层
+            lastTime = System.currentTimeMillis(); // 更新时间
             return;
         }
         direction = 0; // 设置电梯方向为0，表示等待

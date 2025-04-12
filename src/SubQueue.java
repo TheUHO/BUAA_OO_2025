@@ -144,5 +144,20 @@ public class SubQueue {
         }
         return selected;
     }
+
+    public synchronized Person getAndCleanRequest() {
+        if (persons.isEmpty()) {
+            return null;
+        }
+        Person selected = null;
+        Iterator<Person> iterator = persons.iterator();
+        while (iterator.hasNext()) {
+            Person p = iterator.next();
+            selected = p;
+            iterator.remove(); // 从等待队列中移除该乘客
+            break; // 只取第一个乘客
+        }
+        return selected;
+    }
 }
 
