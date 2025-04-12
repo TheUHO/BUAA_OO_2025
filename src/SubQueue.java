@@ -45,6 +45,10 @@ public class SubQueue {
         return scheRequest;
     }
 
+    public synchronized boolean hasPersonRequest() {
+        return !persons.isEmpty(); // 判断是否存在乘客请求
+    }
+
     public synchronized boolean hasScheRequest() { // 判断是否存在临时调度请求
         return scheRequest != null;
     }
@@ -124,7 +128,7 @@ public class SubQueue {
         return selected;
     }
 
-    public synchronized Person getUnableRequest(boolean isA, boolean isB, int tfFloor) {
+    public synchronized Person getAndCleanRequest() {
         if (persons.isEmpty()) {
             return null;
         }
@@ -132,15 +136,9 @@ public class SubQueue {
         Iterator<Person> iterator = persons.iterator();
         while (iterator.hasNext()) {
             Person p = iterator.next();
-            boolean condition1 = isA && p.getFromInt() < tfFloor;
-            boolean condition2 = isB && p.getFromInt() > tfFloor;
-            boolean condition3 = isA && p.getFromInt() == tfFloor && p.getToInt() < tfFloor;
-            boolean condition4 = isB && p.getFromInt() == tfFloor && p.getToInt() > tfFloor;
-            if (condition1 || condition2 || condition3 || condition4) {
-                selected = p;
-                iterator.remove();
-                break;
-            }
+            selected = p;
+            iterator.remove(); // 从等待队列中移除该乘客
+            break; // 只取第一个乘客
         }
         return selected;
     }
