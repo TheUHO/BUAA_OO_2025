@@ -361,8 +361,7 @@ public class Elevator extends Thread {
     }
 
     private void move() {
-        if (mainRequest.get() == null && personsIn == 0 && 
-            !(hasUpdated && currentFloor == transferFloor)) {
+        if (mainRequest.get() == null && personsIn == 0) {
             Person person = subQueue.getPrimaryRequest(); // 获取主请求
             if (person != null) {
                 mainRequest.set(person); // 获取主请求
@@ -459,6 +458,7 @@ public class Elevator extends Thread {
             personsIn, null, isA, isB, transferFloor); // 更新影子电梯状态
         synchronized (subQueue) {
             if (subQueue.isEnd()) { return; } // 如果请求队列已结束，则不再等待
+            if (!subQueue.isEmpty()) { return; } // 如果请求队列不为空，则不再等待
             try { subQueue.wait(); } 
             catch (InterruptedException e) { Thread.currentThread().interrupt(); } // 调用等待方法，使当前线程挂起
         }
