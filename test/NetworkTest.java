@@ -33,15 +33,7 @@ public class NetworkTest {
             }
             /*@ pure @*/
             Person[] before = network.getPersons();
-            /*@ ensures \result ==
-            @         (\sum int i; 0 <= i && i < persons.length;
-            @             (\sum int j; i < j && j < persons.length;
-            @                 (\sum int k; j < k && k < persons.length
-            @                     && getPerson(persons[i].getId()).isLinked(getPerson(persons[j].getId()))
-            @                     && getPerson(persons[j].getId()).isLinked(getPerson(persons[k].getId()))
-            @                     && getPerson(persons[k].getId()).isLinked(getPerson(persons[i].getId()));
-            @                     1)));
-            @*/
+            // ensures 
             int tripleSumCount = countTripleSum();
             int got1 = network.queryTripleSum();
             int got2 = network.queryTripleSum();
