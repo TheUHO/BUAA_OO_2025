@@ -11,6 +11,7 @@ import java.util.Random;
 public class NetworkTest {
     private Network network;
     private final Random rnd = new Random();
+    private int nextNameId = 0;
 
     @Before
     public void setup() {
@@ -24,7 +25,7 @@ public class NetworkTest {
             double p = rnd.nextDouble();
             if (p < 0.2) {
                 addPerson();
-            } else if (p < 0.6) {
+            } else if (p < 0.5) {
                 addRelation();
             } else if (p < 0.8) {
                 modifyRelation();
@@ -75,7 +76,8 @@ public class NetworkTest {
 
     private void addPerson() {
         int id = genId();
-        String name = "name" + rnd.nextInt(1000);
+        String name = String.valueOf(nextNameId);
+        nextNameId++;
         int age = rnd.nextInt(100) + 1;
         Person p = new Person(id, name, age);
         try {
@@ -110,9 +112,9 @@ public class NetworkTest {
     private int genId() {
         double p = rnd.nextDouble();
         if (p < 0.2) {
-            return rnd.nextInt(5);
-        } else if (p < 0.8) {
-            return rnd.nextInt(10); 
+            return rnd.nextInt(5) + 1;
+        } else if (p < 0.7) {
+            return rnd.nextInt(10) + 1; 
         } else {
             return rnd.nextInt(100) - 50;
         }
