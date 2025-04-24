@@ -1,4 +1,5 @@
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -82,7 +83,9 @@ public class NetworkTest {
         Person p = new Person(id, name, age);
         try {
             network.addPerson(p);
-        } catch (EqualPersonIdException ignored) {}
+        } catch (EqualPersonIdException ignored) {
+            // do nothing
+        }
     }
 
     private void addRelation() {
@@ -91,7 +94,9 @@ public class NetworkTest {
         int v = rnd.nextInt(10) + 1;
         try {
             network.addRelation(id1, id2, v);
-        } catch (PersonIdNotFoundException | EqualRelationException ignored) {}
+        } catch (PersonIdNotFoundException | EqualRelationException ignored) {
+            // do nothing
+        }
     }
 
     private void modifyRelation() {
@@ -100,13 +105,18 @@ public class NetworkTest {
         int delta = rnd.nextInt(101) - 50;
         try {
             network.modifyRelation(id1, id2, delta);
-        } catch (PersonIdNotFoundException | RelationNotFoundException | EqualPersonIdException ignored) {}
+        } catch (PersonIdNotFoundException | RelationNotFoundException 
+            | EqualPersonIdException ignored) {
+            // do nothing
+        }
     }
 
     private void queryTripleSum() {
         try {
             network.queryTripleSum();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            // do nothing
+        }
     }
 
     private int genId() {
