@@ -230,7 +230,7 @@ public class Network implements NetworkInterface {
         return sum;
     }
 
-    public Person[] getPersons() {
-        return (Person[]) persons.values().toArray(new Person[0]);
+    public PersonInterface[] getPersons() {
+        return (PersonInterface[]) persons.values().toArray(new PersonInterface[0]);
     }
 }

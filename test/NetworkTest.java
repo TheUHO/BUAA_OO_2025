@@ -34,7 +34,7 @@ public class NetworkTest {
                 queryTripleSum();
             }
             /*@ pure @*/
-            Person[] before = network.getPersons();
+            Person[] before = (Person[]) network.getPersons();
             // ensures 
             int tripleSumCount = countTripleSum();
             int got1 = network.queryTripleSum();
@@ -42,7 +42,7 @@ public class NetworkTest {
             assertEquals(tripleSumCount, got1);
             assertEquals(tripleSumCount, got2);
 
-            Person[] after = network.getPersons();
+            Person[] after = (Person[]) network.getPersons();
             assertEquals(before.length, after.length);
             for (Person p0 : before) {
                 boolean found = false;
@@ -59,7 +59,7 @@ public class NetworkTest {
 
     // 暴力统计当前网络中的三元组数：i<j<k 且三者两两直接相连
     private int countTripleSum() {
-        Person[] ps = network.getPersons();
+        Person[] ps = (Person[])network.getPersons();
         int n = ps.length;
         int cnt = 0;
         for (int i = 0; i < n; i++) {
