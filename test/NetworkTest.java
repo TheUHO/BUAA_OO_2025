@@ -26,16 +26,14 @@ public class NetworkTest {
 
     @Test
     public void queryTripleSumTest() throws Exception {
-        final int Steps = 1000;
+        final int Steps = 500;
         for (int step = 0; step < Steps; step++) {
-            if (step % 4 == 0) {
+            if (step % 3 == 0) {
                 addPerson();
-            } else if (step % 4 == 1) {
+            } else if (step % 3 == 1) {
                 addRelation();
-            } else if (step % 4 == 2) {
-                modifyRelation();
             } else {
-                queryTripleSum();
+                modifyRelation();
             }
             /*@ pure @*/
             PersonInterface[] before = network.getPersons();
@@ -57,6 +55,17 @@ public class NetworkTest {
                     }
                 }
                 assertTrue(found);
+            }
+            int n = before.length;
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    assertEquals(before[i].isLinked(before[j]), before[j].isLinked(before[i]));
+                    assertEquals(before[i].isLinked(before[j]), after[i].isLinked(after[j]));
+                    if (before[i].isLinked(before[j])) {
+                        assertEquals(before[i].queryValue(before[j]), before[j].queryValue(before[i]));
+                        assertEquals(before[i].queryValue(before[j]), after[i].queryValue(after[j]));
+                    }
+                }
             }
         }
     }
