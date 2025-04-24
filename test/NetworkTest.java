@@ -35,21 +35,29 @@ public class NetworkTest {
         network.addPerson(new Person(5, "5", 10));
         for (int i = 10; i < 20; i++) {
             try {
-                network.addPerson(new Person(i, "name" + i, i));
+                network.addPerson(new Person(i,"" + i, i));
             } catch (Exception e) {}
             checkTripleSum();
         }
-        network.addRelation(0, 1, 50);
-        network.addRelation(0, 2, 50);
+        network.addRelation(0, 1, 5);
+        network.addRelation(0, 2, 5);
         assertEquals(0, network.queryTripleSum());
-        network.addRelation(2, 1, 50);
-        network.addRelation(1, 3, 50);
-        network.addRelation(2, 4, 50);
-        network.addRelation(5, 4, 50);
-        network.addRelation(5, 3, 50);
+        network.addRelation(2, 1, 5);
+        network.addRelation(1, 3, 5);
+        network.addRelation(2, 4, 5);
+        network.addRelation(5, 4, 5);
+        network.addRelation(5, 3, 5);
         assertEquals(1, network.queryTripleSum());
         network.addRelation(4, 3, 50);
         assertEquals(2, network.queryTripleSum());
+        checkTripleSum();
+        try {
+            network.addRelation(0, 100, 5);
+        } catch (Exception e) {}
+        checkTripleSum();
+        try {
+            network.modifyRelation(0, 100, 5);
+        } catch (Exception e) {}
         checkTripleSum();
         for (int step = 0; step < Steps; step++) {
             if (step % 3 == 0) {
@@ -149,7 +157,7 @@ public class NetworkTest {
     private void modifyRelation() {
         int id1 = genId();
         int id2 = genId();
-        int delta = rnd.nextInt(101) - 50;
+        int delta = rnd.nextInt(20) - 10;
         try {
             network.modifyRelation(id1, id2, delta);
         } catch (PersonIdNotFoundException | RelationNotFoundException 
