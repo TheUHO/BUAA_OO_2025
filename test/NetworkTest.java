@@ -7,6 +7,8 @@ import com.oocourse.spec1.exceptions.PersonIdNotFoundException;
 import com.oocourse.spec1.exceptions.EqualPersonIdException;
 import com.oocourse.spec1.exceptions.EqualRelationException;
 import com.oocourse.spec1.exceptions.RelationNotFoundException;
+import com.oocourse.spec1.main.PersonInterface;
+
 import java.util.Random;
 
 public class NetworkTest {
@@ -34,7 +36,7 @@ public class NetworkTest {
                 queryTripleSum();
             }
             /*@ pure @*/
-            Person[] before = (Person[]) network.getPersons();
+            PersonInterface[] before = network.getPersons();
             // ensures 
             int tripleSumCount = countTripleSum();
             int got1 = network.queryTripleSum();
@@ -42,11 +44,11 @@ public class NetworkTest {
             assertEquals(tripleSumCount, got1);
             assertEquals(tripleSumCount, got2);
 
-            Person[] after = (Person[]) network.getPersons();
+            PersonInterface[] after = network.getPersons();
             assertEquals(before.length, after.length);
-            for (Person p0 : before) {
+            for (PersonInterface p0 : before) {
                 boolean found = false;
-                for (Person p1 : after) {
+                for (PersonInterface p1 : after) {
                     if (((Person)p0).strictEquals(p1)) {
                         found = true;
                         break;
@@ -59,7 +61,7 @@ public class NetworkTest {
 
     // 暴力统计当前网络中的三元组数：i<j<k 且三者两两直接相连
     private int countTripleSum() {
-        Person[] ps = (Person[])network.getPersons();
+        PersonInterface[] ps = network.getPersons();
         int n = ps.length;
         int cnt = 0;
         for (int i = 0; i < n; i++) {

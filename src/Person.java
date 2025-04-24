@@ -136,12 +136,13 @@ public class Person implements PersonInterface {
         return priorityQueue.peek(); // 返回优先级最高的acquaintance的id
     }
 
-    public boolean strictEquals(Person person) {
-        return id == person.getId() &&
-               name.equals(person.getName()) &&
-               age == person.getAge() &&
-               acquaintance.equals(person.getAcquaintance()) &&
-               value.equals(person.value) &&
-               tags.equals(person.tags);
+    public boolean strictEquals(PersonInterface person) {
+        Person p = (Person) person;
+        return id == p.getId() &&
+               name.equals(p.getName()) &&
+               age == p.getAge() &&
+               acquaintance.equals(p.getAcquaintance()) &&
+               value.equals(p.value) &&
+               tags.equals(p.tags);
     }
 }
