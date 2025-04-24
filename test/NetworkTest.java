@@ -27,6 +27,22 @@ public class NetworkTest {
     @Test
     public void queryTripleSumTest() throws Exception {
         final int Steps = 500;
+        network.addPerson(new Person(0, "0", 10));
+        network.addPerson(new Person(1, "1", 10));
+        network.addPerson(new Person(2, "2", 10));
+        network.addPerson(new Person(3, "3", 10));
+        network.addPerson(new Person(4, "4", 10));
+        network.addPerson(new Person(5, "5", 10));
+        network.addRelation(0, 1, 50);
+        network.addRelation(0, 2, 50);
+        network.addRelation(2, 1, 50);
+        network.addRelation(1, 3, 50);
+        network.addRelation(2, 4, 50);
+        network.addRelation(5, 4, 50);
+        network.addRelation(5, 3, 50);
+        assertEquals(1, network.queryTripleSum());
+        network.addRelation(4, 3, 50);
+        assertEquals(2, network.queryTripleSum());
         for (int step = 0; step < Steps; step++) {
             if (step % 3 == 0) {
                 addPerson();
@@ -140,9 +156,9 @@ public class NetworkTest {
 
     private int genId() {
         double p = rnd.nextDouble();
-        if (p < 0.2) {
+        if (p < 0.6) {
             return rnd.nextInt(5) + 1;
-        } else if (p < 0.7) {
+        } else if (p < 0.8) {
             return rnd.nextInt(10) + 1; 
         } else {
             return rnd.nextInt(100) - 50;
