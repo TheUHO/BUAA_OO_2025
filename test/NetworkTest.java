@@ -23,7 +23,7 @@ public class NetworkTest {
 
     @Test
     public void queryTripleSumTest() throws Exception {
-        final int Steps = 1000;
+        final int Steps = 10000;
         for (int step = 0; step < Steps; step++) {
             double p = rnd.nextDouble();
             if (p < 0.2) {
@@ -37,7 +37,7 @@ public class NetworkTest {
             }
             /*@ pure @*/
             PersonInterface[] before = network.getPersons();
-            // ensures 
+            // ensures
             int tripleSumCount = countTripleSum();
             int got1 = network.queryTripleSum();
             int got2 = network.queryTripleSum();
@@ -61,20 +61,26 @@ public class NetworkTest {
 
     // 暴力统计当前网络中的三元组数：i<j<k 且三者两两直接相连
     private int countTripleSum() {
-        PersonInterface[] ps = network.getPersons();
-        int n = ps.length;
+        PersonInterface[] persons = network.getPersons();
+        int n = persons.length;
         int cnt = 0;
         for (int i = 0; i < n; i++) {
             for (int j = i + 1; j < n; j++) {
-                if (!ps[i].isLinked(ps[j])) { continue; }
+                if (!persons[i].isLinked(persons[j])) { continue; }
                 for (int k = j + 1; k < n; k++) {
-                    if (ps[i].isLinked(ps[k]) && ps[j].isLinked(ps[k])) {
+                    if (getPerson(persons[i].getId()).isLinked(getPerson(persons[j].getId()))
+                        && getPerson(persons[j].getId()).isLinked(getPerson(persons[k].getId()))
+                        && getPerson(persons[k].getId()).isLinked(getPerson(persons[i].getId()))) {
                         cnt++;
                     }
                 }
             }
         }
         return cnt;
+    }
+
+    private PersonInterface getPerson(int id) {
+        return network.getPerson(id);
     }
 
     private void addPerson() {
