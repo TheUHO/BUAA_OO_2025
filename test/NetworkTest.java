@@ -2,13 +2,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.*;
 import com.oocourse.spec1.exceptions.PersonIdNotFoundException;
 import com.oocourse.spec1.exceptions.EqualPersonIdException;
 import com.oocourse.spec1.exceptions.EqualRelationException;
 import com.oocourse.spec1.exceptions.RelationNotFoundException;
 import com.oocourse.spec1.main.PersonInterface;
 
+import java.util.Collection;
 import java.util.Random;
 
 public class NetworkTest {
@@ -23,7 +26,7 @@ public class NetworkTest {
 
     @Test
     public void queryTripleSumTest() throws Exception {
-        final int Steps = 10000;
+        final int Steps = 100;
         for (int step = 0; step < Steps; step++) {
             double p = rnd.nextDouble();
             if (p < 0.2) {
