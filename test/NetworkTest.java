@@ -33,8 +33,15 @@ public class NetworkTest {
         network.addPerson(new Person(3, "3", 10));
         network.addPerson(new Person(4, "4", 10));
         network.addPerson(new Person(5, "5", 10));
+        for (int i = 10; i < 20; i++) {
+            try {
+                network.addPerson(new Person(i, "name" + i, i));
+            } catch (Exception e) {}
+            checkTripleSum();
+        }
         network.addRelation(0, 1, 50);
         network.addRelation(0, 2, 50);
+        assertEquals(0, network.queryTripleSum());
         network.addRelation(2, 1, 50);
         network.addRelation(1, 3, 50);
         network.addRelation(2, 4, 50);
@@ -43,6 +50,7 @@ public class NetworkTest {
         assertEquals(1, network.queryTripleSum());
         network.addRelation(4, 3, 50);
         assertEquals(2, network.queryTripleSum());
+        checkTripleSum();
         for (int step = 0; step < Steps; step++) {
             if (step % 3 == 0) {
                 addPerson();
@@ -51,36 +59,40 @@ public class NetworkTest {
             } else {
                 modifyRelation();
             }
-            /*@ pure @*/
-            PersonInterface[] before = network.getPersons();
-            // ensures
-            int tripleSumCount = countTripleSum();
-            int got1 = network.queryTripleSum();
-            int got2 = network.queryTripleSum();
-            assertEquals(tripleSumCount, got1);
-            assertEquals(tripleSumCount, got2);
+            checkTripleSum();
+        }
+    }
 
-            PersonInterface[] after = network.getPersons();
-            assertEquals(before.length, after.length);
-            for (PersonInterface p0 : before) {
-                boolean found = false;
-                for (PersonInterface p1 : after) {
-                    if (((Person)p0).strictEquals(p1)) {
-                        found = true;
-                        break;
-                    }
+    private void checkTripleSum() {
+        /*@ pure @*/
+        PersonInterface[] before = network.getPersons();
+        // ensures
+        int tripleSumCount = countTripleSum();
+        int got1 = network.queryTripleSum();
+        int got2 = network.queryTripleSum();
+        assertEquals(tripleSumCount, got1);
+        assertEquals(tripleSumCount, got2);
+
+        PersonInterface[] after = network.getPersons();
+        assertEquals(before.length, after.length);
+        for (PersonInterface p0 : before) {
+            boolean found = false;
+            for (PersonInterface p1 : after) {
+                if (((Person)p0).strictEquals(p1)) {
+                    found = true;
+                    break;
                 }
-                assertTrue(found);
             }
-            int n = before.length;
-            for (int i = 0; i < n; i++) {
-                for (int j = 0; j < n; j++) {
-                    assertEquals(before[i].isLinked(before[j]), before[j].isLinked(before[i]));
-                    assertEquals(before[i].isLinked(before[j]), after[i].isLinked(after[j]));
-                    if (before[i].isLinked(before[j])) {
-                        assertEquals(before[i].queryValue(before[j]), before[j].queryValue(before[i]));
-                        assertEquals(before[i].queryValue(before[j]), after[i].queryValue(after[j]));
-                    }
+            assertTrue(found);
+        }
+        int n = before.length;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                assertEquals(before[i].isLinked(before[j]), before[j].isLinked(before[i]));
+                assertEquals(before[i].isLinked(before[j]), after[i].isLinked(after[j]));
+                if (before[i].isLinked(before[j])) {
+                    assertEquals(before[i].queryValue(before[j]), before[j].queryValue(before[i]));
+                    assertEquals(before[i].queryValue(before[j]), after[i].queryValue(after[j]));
                 }
             }
         }
