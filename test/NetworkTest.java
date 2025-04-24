@@ -26,14 +26,13 @@ public class NetworkTest {
 
     @Test
     public void queryTripleSumTest() throws Exception {
-        final int Steps = 100;
+        final int Steps = 1000;
         for (int step = 0; step < Steps; step++) {
-            double p = rnd.nextDouble();
-            if (p < 0.2) {
+            if (step % 4 == 0) {
                 addPerson();
-            } else if (p < 0.5) {
+            } else if (step % 4 == 1) {
                 addRelation();
-            } else if (p < 0.8) {
+            } else if (step % 4 == 2) {
                 modifyRelation();
             } else {
                 queryTripleSum();
