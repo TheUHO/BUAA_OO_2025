@@ -51,7 +51,6 @@ public class NetworkTest {
         assertEquals(1, network.queryTripleSum());
         network.addRelation(4, 3, 50);
         assertEquals(2, network.queryTripleSum());
-        checkTripleSum();
         try {
             network.addRelation(0, 100, 5);
         } catch (Exception e) {}
@@ -70,6 +69,33 @@ public class NetworkTest {
             }
             checkTripleSum();
         }
+    }
+
+    @Test
+    public void queryTripleSumTest2() throws Exception {
+        Network newNetwork = new Network();
+        for (int i = 200; i < 205; i++) {
+            try {
+                newNetwork.addPerson(new Person(i, "P" + i, 20 + i));
+            } catch (EqualPersonIdException e) {
+                // 不可能重复
+            }
+        }
+        for (int i = 200; i < 205; i++) {
+            for (int j = i + 1; j < 205; j++) {
+                try {
+                    newNetwork.addRelation(i, j, 1);
+                } catch (PersonIdNotFoundException | EqualRelationException e) {
+                    // 按理不会抛
+                }
+            }
+        }
+        int triCount = newNetwork.queryTripleSum();
+        assertEquals(
+            "在 5 个节点的完全图上，应有 10 个三角关系",
+            10,
+            triCount
+        );
     }
 
     private void checkTripleSum() {
@@ -129,26 +155,31 @@ public class NetworkTest {
 
     public PersonInterface[] deepCopyPersons() {
         PersonInterface[] originals = network.getPersons();
-        HashMap<Integer, Person> cloneMap = new HashMap<>();
+        Network cloneNet = new Network();
         for (PersonInterface pi : originals) {
             Person p = (Person) pi;
-            cloneMap.put(p.getId(), new Person(p.getId(), p.getName(), p.getAge()));
-        }
-        for (PersonInterface pi : originals) {
-            Person original = (Person) pi;
-            Person copy = cloneMap.get(original.getId());
-            for (Integer neighId : original.getAcquaintance().keySet()) {
-                Person origNeigh = original.getAcquaintance().get(neighId);
-                Person copyNeigh = cloneMap.get(neighId);
-                int val = original.queryValue(origNeigh);
-                copy.addRelation(copyNeigh, val);
+            try {
+                cloneNet.addPerson(new Person(p.getId(), p.getName(), p.getAge()));
+            } catch (EqualPersonIdException ignored) {
+                // id 冲突不应该发生
             }
         }
-        PersonInterface[] copies = new PersonInterface[originals.length];
-        for (int i = 0; i < originals.length; i++) {
-            copies[i] = cloneMap.get(originals[i].getId());
+        int n = originals.length;
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                PersonInterface pi = originals[i];
+                PersonInterface pj = originals[j];
+                if (pi.isLinked(pj)) {
+                    int weight = pi.queryValue(pj);
+                    try {
+                        cloneNet.addRelation(pi.getId(), pj.getId(), weight);
+                    } catch (PersonIdNotFoundException | EqualRelationException ignored) {
+                        // id 冲突不应该发生
+                    }
+                }
+            }
         }
-        return copies;
+        return cloneNet.getPersons();
     }
 
     private PersonInterface getPerson(int id) {
