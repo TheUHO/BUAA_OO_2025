@@ -37,7 +37,9 @@ public class NetworkTest {
         for (int i = 10; i < 20; i++) {
             try {
                 network.addPerson(new Person(i,"" + i, i));
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                // do nothing
+            }
             assertEquals(0, network.queryTripleSum());
         }
         network.addRelation(0, 1, 5);
@@ -53,11 +55,17 @@ public class NetworkTest {
         assertEquals(2, network.queryTripleSum());
         try {
             network.addRelation(0, 100, 5);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            // do nothing
+        }
+        assertEquals(2, network.queryTripleSum());
         checkTripleSum();
         try {
             network.modifyRelation(0, 100, 5);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            // do nothing
+        }
+        assertEquals(2, network.queryTripleSum());
         checkTripleSum();
         for (int step = 0; step < Steps; step++) {
             if (step % 3 == 0) {
