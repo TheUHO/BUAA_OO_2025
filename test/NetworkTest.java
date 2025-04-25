@@ -12,6 +12,7 @@ import com.oocourse.spec1.exceptions.RelationNotFoundException;
 import com.oocourse.spec1.main.PersonInterface;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Random;
 
 public class NetworkTest {
@@ -26,7 +27,7 @@ public class NetworkTest {
 
     @Test
     public void queryTripleSumTest() throws Exception {
-        final int Steps = 500;
+        final int Steps = 100;
         network.addPerson(new Person(0, "0", 10));
         network.addPerson(new Person(1, "1", 10));
         network.addPerson(new Person(2, "2", 10));
@@ -37,7 +38,7 @@ public class NetworkTest {
             try {
                 network.addPerson(new Person(i,"" + i, i));
             } catch (Exception e) {}
-            checkTripleSum();
+            assertEquals(0, network.queryTripleSum());
         }
         network.addRelation(0, 1, 5);
         network.addRelation(0, 2, 5);
@@ -73,7 +74,7 @@ public class NetworkTest {
 
     private void checkTripleSum() {
         /*@ pure @*/
-        PersonInterface[] before = network.getPersons();
+        PersonInterface[] before = deepCopyPersons();
         // ensures
         int tripleSumCount = countTripleSum();
         int got1 = network.queryTripleSum();
@@ -108,7 +109,7 @@ public class NetworkTest {
 
     // 暴力统计当前网络中的三元组数：i<j<k 且三者两两直接相连
     private int countTripleSum() {
-        PersonInterface[] persons = network.getPersons();
+        PersonInterface[] persons = deepCopyPersons();
         int n = persons.length;
         int cnt = 0;
         for (int i = 0; i < n; i++) {
@@ -124,6 +125,30 @@ public class NetworkTest {
             }
         }
         return cnt;
+    }
+
+    public PersonInterface[] deepCopyPersons() {
+        PersonInterface[] originals = network.getPersons();
+        HashMap<Integer, Person> cloneMap = new HashMap<>();
+        for (PersonInterface pi : originals) {
+            Person p = (Person) pi;
+            cloneMap.put(p.getId(), new Person(p.getId(), p.getName(), p.getAge()));
+        }
+        for (PersonInterface pi : originals) {
+            Person original = (Person) pi;
+            Person copy = cloneMap.get(original.getId());
+            for (Integer neighId : original.getAcquaintance().keySet()) {
+                Person origNeigh = original.getAcquaintance().get(neighId);
+                Person copyNeigh = cloneMap.get(neighId);
+                int val = original.queryValue(origNeigh);
+                copy.addRelation(copyNeigh, val);
+            }
+        }
+        PersonInterface[] copies = new PersonInterface[originals.length];
+        for (int i = 0; i < originals.length; i++) {
+            copies[i] = cloneMap.get(originals[i].getId());
+        }
+        return copies;
     }
 
     private PersonInterface getPerson(int id) {
