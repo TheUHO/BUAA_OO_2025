@@ -65,7 +65,7 @@ public class QueryCoupleSumTest {
             }
         }
         for (int i = 1; i < n; i++) {
-            oldNetwork.addRelation(i, i + 1, rnd.nextInt(100) + 1);
+            oldNetwork.addRelation(i, i + 1, i * n + (i + 1));
         }
         return new Object[]{ oldNetwork, deepCopyNetwork(oldNetwork) };
     }
@@ -110,24 +110,7 @@ public class QueryCoupleSumTest {
     @Test
     public void checkQueryCoupleSum() {
         // check equal
-        int totalSum = 0;
-        Network countNetwork = deepCopyNetwork(oldNetwork);
-        PersonInterface[] persons = countNetwork.getPersons();
-        for (PersonInterface pi : persons) {
-            for (PersonInterface pj : persons) {
-                if (pi.getId() < pj.getId()) {
-                    try {
-                        int bi = countNetwork.queryBestAcquaintance(pi.getId());
-                        int bj = countNetwork.queryBestAcquaintance(pj.getId());
-                        if (bi == pj.getId() && bj == pi.getId()) {
-                            totalSum++;
-                        }
-                    } catch (Exception e) {
-                        // do nothing
-                    }
-                }
-            }
-        }
+        int totalSum = countTripleSum(oldNetwork);
         int got1 = testNetwork.queryCoupleSum();
         Network testNetwork2 = deepCopyNetwork(testNetwork);
         int got2 = testNetwork2.queryCoupleSum();
@@ -151,6 +134,28 @@ public class QueryCoupleSumTest {
                 }
             }
         }
+    }
+
+    public static int countTripleSum(Network network) {
+        int totalSum = 0;
+        Network countNetwork = deepCopyNetwork(network);
+        PersonInterface[] persons = countNetwork.getPersons();
+        for (PersonInterface pi : persons) {
+            for (PersonInterface pj : persons) {
+                if (pi.getId() < pj.getId()) {
+                    try {
+                        int bi = countNetwork.queryBestAcquaintance(pi.getId());
+                        int bj = countNetwork.queryBestAcquaintance(pj.getId());
+                        if (bi == pj.getId() && bj == pi.getId()) {
+                            totalSum++;
+                        }
+                    } catch (Exception e) {
+                        // do nothing
+                    }
+                }
+            }
+        }
+        return totalSum;
     }
 
     private static void addPerson(Network network) {
