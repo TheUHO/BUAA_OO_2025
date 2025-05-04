@@ -140,13 +140,18 @@ public class QueryCoupleSumTest {
         int totalSum = 0;
         Network countNetwork = deepCopyNetwork(network);
         PersonInterface[] persons = countNetwork.getPersons();
-        for (PersonInterface pi : persons) {
-            for (PersonInterface pj : persons) {
-                if (pi.getId() < pj.getId()) {
+        int n = persons.length;
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                PersonInterface pi = persons[i];
+                PersonInterface pj = persons[j];
+                if (pi.isLinked(pj)) {
+                    int piId = pi.getId();
+                    int pjId = pj.getId();
                     try {
-                        int bi = countNetwork.queryBestAcquaintance(pi.getId());
-                        int bj = countNetwork.queryBestAcquaintance(pj.getId());
-                        if (bi == pj.getId() && bj == pi.getId()) {
+                        int bi = countNetwork.queryBestAcquaintance(piId);
+                        int bj = countNetwork.queryBestAcquaintance(pjId);
+                        if (bi == pjId && bj == piId) {
                             totalSum++;
                         }
                     } catch (Exception e) {
