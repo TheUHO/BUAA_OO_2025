@@ -394,7 +394,7 @@ public class Network implements NetworkInterface {
     private int bfsShortestPath(int id1, int id2) throws PathNotFoundException {
         if (!shortestPathCacheDirty) {
             if (shortestPathCache.containsKey(id1) && shortestPathCache.get(id1).containsKey(id2)) {
-            return shortestPathCache.get(id1).get(id2);
+                return shortestPathCache.get(id1).get(id2);
             }
             if (shortestPathCache.containsKey(id2) && shortestPathCache.get(id2).containsKey(id1)) {
                 return shortestPathCache.get(id2).get(id1);
