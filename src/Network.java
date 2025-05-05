@@ -31,6 +31,7 @@ public class Network implements NetworkInterface {
     private final HashMap<Integer, OfficialAccount> accounts;
     private final HashSet<Integer> articles;
     private final HashMap<Integer, Integer> articleContributors;
+    private boolean shortestPathCacheDirty = true; // 缓存是否脏
 
     public Network() {
         persons = new HashMap<>();
@@ -38,6 +39,7 @@ public class Network implements NetworkInterface {
         tagStorage = new TagStorage(persons);
         tripleSum = 0;
         shortestPathCache = new HashMap<>();
+        shortestPathCacheDirty = true;
         accounts = new HashMap<>();
         articles = new HashSet<>();
         articleContributors = new HashMap<>();
@@ -63,6 +65,7 @@ public class Network implements NetworkInterface {
         if (!containsPerson(id)) {
             persons.put(id, (Person) person);
             graph.addPerson(id); // 加入并查集
+            shortestPathCacheDirty = true;
         } else {
             throw new EqualPersonIdException(id);
         }
@@ -85,7 +88,7 @@ public class Network implements NetworkInterface {
             graph.addRelation(id1, id2); // 加入并查集
             tripleSum += getSharedRelation(id1, id2);
             tagStorage.modifyTagValueSum(id1, id2, value);
-            shortestPathCache.clear(); // 清空缓存
+            shortestPathCacheDirty = true;
         }
     }
 
@@ -103,7 +106,7 @@ public class Network implements NetworkInterface {
         } else {
             Person person1 = (Person) getPerson(id1);
             Person person2 = (Person) getPerson(id2);
-            int nextValue = person1.queryValue(person2) + value;
+            int nextValue = person1.queryValue(person2) + value;   
             if (nextValue > 0) {
                 person1.modifyRelation(person2, nextValue);
                 person2.modifyRelation(person1, nextValue);
@@ -114,7 +117,7 @@ public class Network implements NetworkInterface {
                 graph.deleteRelation(id1, id2); // 删除并查集
                 tripleSum -= getSharedRelation(id1, id2);
                 tagStorage.modifyTagValueSum(id1, id2, -person1.queryValue(person2));
-                shortestPathCache.clear(); // 清空缓存
+                shortestPathCacheDirty = true;
             }
         }
     }
@@ -272,12 +275,6 @@ public class Network implements NetworkInterface {
         } else if (!graph.isCircle(id1, id2)) {
             throw new PathNotFoundException(id1, id2);
         } else {
-            if (shortestPathCache.containsKey(id1) && shortestPathCache.get(id1).containsKey(id2)) {
-                return shortestPathCache.get(id1).get(id2);
-            }
-            if (shortestPathCache.containsKey(id2) && shortestPathCache.get(id2).containsKey(id1)) {
-                return shortestPathCache.get(id2).get(id1);
-            }
             int result = bfsShortestPath(id1, id2);
             return result;
         }
@@ -355,9 +352,8 @@ public class Network implements NetworkInterface {
             throw new DeleteArticlePermissionDeniedException(personId, articleId);
         } else {
             OfficialAccount account = accounts.get(accountId);
-            account.deleteArticle(personId, articleId);
-            articles.remove(articleId);
-            articleContributors.remove(articleId);
+            int contributorId = articleContributors.get(articleId);
+            account.deleteArticle(contributorId, articleId);
         }
     }
 
@@ -396,6 +392,16 @@ public class Network implements NetworkInterface {
     // <------自主实现函数------->
 
     private int bfsShortestPath(int id1, int id2) throws PathNotFoundException {
+        if (!shortestPathCacheDirty) {
+            if (shortestPathCache.containsKey(id1) && shortestPathCache.get(id1).containsKey(id2)) {
+            return shortestPathCache.get(id1).get(id2);
+            }
+            if (shortestPathCache.containsKey(id2) && shortestPathCache.get(id2).containsKey(id1)) {
+                return shortestPathCache.get(id2).get(id1);
+            }
+        }
+        shortestPathCache.clear();
+        shortestPathCacheDirty = false;
         if (id1 == id2) {
             return 0;
         }
@@ -414,10 +420,8 @@ public class Network implements NetworkInterface {
                     visited.add(neighborId);
                     queue.add(neighborId);
                     distance.put(neighborId, distance.get(currentId) + 1); // 更新距离
-                    // 更新缓存
-                    shortestPathCache.putIfAbsent(currentId, new HashMap<>());
-                    shortestPathCache.get(currentId).put(neighborId, distance.get(neighborId));
                     if (neighborId == id2) { // 找到目标id
+                        shortestPathCache.put(id1, distance);
                         return distance.get(neighborId);
                     }
                 }

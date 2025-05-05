@@ -88,11 +88,11 @@ public class OfficialAccount implements OfficialAccountInterface {
         }
     }
 
-    public void deleteArticle(int personId, int articleId) {
+    public void deleteArticle(int contributorId, int articleId) {
         removeArticle(articleId);
-        contributions.put(personId, contributions.get(personId) - 1); // 减少贡献值
-        priorityQueue.remove(personId);
-        priorityQueue.add(personId);
+        contributions.put(contributorId, contributions.get(contributorId) - 1); // 减少贡献值
+        priorityQueue.remove(contributorId);
+        priorityQueue.add(contributorId);
         for (PersonInterface follower : followers.values()) { // 通知所有粉丝
             ((Person)follower).deleteArticle(articleId); // 在粉丝的链表中删除
         }
