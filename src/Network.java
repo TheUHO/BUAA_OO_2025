@@ -116,7 +116,7 @@ public class Network implements NetworkInterface {
                 person2.deleteRelation(person1);
                 graph.deleteRelation(id1, id2); // 删除并查集
                 tripleSum -= getSharedRelation(id1, id2);
-                tagStorage.modifyTagValueSum(id1, id2, -person1.queryValue(person2));
+                tagStorage.modifyTagValueSum(id1, id2, -(nextValue - value));
                 shortestPathCacheDirty = true;
             }
         }
