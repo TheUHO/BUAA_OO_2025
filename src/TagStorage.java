@@ -15,7 +15,10 @@ public class TagStorage {
             personInTag.put(personId1, new ArrayList<>());
         }
         ArrayList<Tag> tags = personInTag.get(personId1);
-        tags.add((Tag)persons.get(personId2).getTag(tagId));
+        Tag tag = (Tag)persons.get(personId2).getTag(tagId); 
+        if (!tags.contains(tag)) { // 没有判断会导致重复添加！
+            tags.add(tag);
+        }
     }
 
     // 无需删除ArrayList中的tag元素，因为如果是关系清空，则Person.deleteRelation会调用tag.delPerson
