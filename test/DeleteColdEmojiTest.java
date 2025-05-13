@@ -29,6 +29,7 @@ public class DeleteColdEmojiTest {
     private static final int RANDOM_MESSAGE_COUNT = 100;// 其余随机消息数，总共 100 条
     private static final int SEND_COUNT = 200;       // 总消息数
     private static final int LIMIT_BOUND = 10;          // limit 的上限
+    private static final int EMOJI_ID_BOUND = 20;         // emojiId 的上限
 
     private final Network oldNetwork;
     private final Network testNetwork;
@@ -110,6 +111,15 @@ public class DeleteColdEmojiTest {
                 // do nothing
             }
         }
+        // add emojiId
+        for (int i = 0; i < EMOJI_ID_BOUND; i++) {
+            try {
+                oldNetwork.storeEmojiId(i);
+                testNetwork.storeEmojiId(i);
+            } catch (Exception ignored) {
+                // do nothing
+            }
+        }
         return new Object[]{ oldNetwork, testNetwork, rnd.nextInt(LIMIT_BOUND)};
     }
 
@@ -119,7 +129,7 @@ public class DeleteColdEmojiTest {
         Random rnd = new Random();
         // 先 EMOJI_MESSAGE_COUNT 条 EmojiMessage
         for (int i = 0; i < EMOJI_MESSAGE_COUNT; i++) {
-            int eid = rnd.nextInt(20);
+            int eid = rnd.nextInt(EMOJI_ID_BOUND);
             int p1 = rnd.nextInt(PERSON_COUNT + PERSON_EXTRA_COUNT) + 1;
             int p2 = rnd.nextInt(PERSON_COUNT + PERSON_EXTRA_COUNT) + 1;
             while (p2 == p1) { p2 = rnd.nextInt(PERSON_COUNT + PERSON_EXTRA_COUNT) + 1; }
@@ -256,10 +266,16 @@ public class DeleteColdEmojiTest {
     public void checkDeleteColdEmoji() {
         // 删除cold emoji
         final int testCount = testNetwork.deleteColdEmoji(limit);
+        // System.out.println("testCount: " + testCount);
+        // System.out.println("limit: " + limit);
         int[] oldEmojiIdList = oldNetwork.getEmojiIdList();
         int[] oldEmojiHeatList = oldNetwork.getEmojiHeatList();
         int[] testEmojiIdList = testNetwork.getEmojiIdList();
         int[] testEmojiHeatList = testNetwork.getEmojiHeatList();
+        // System.out.println("emojiId.length: " + oldEmojiIdList.length);
+        // System.out.println("testEmojiIdList.length: " + testEmojiIdList.length);
+        // System.out.println("oldEmojiHeatList.length: " + oldEmojiHeatList.length);
+        // System.out.println("testEmojiHeatList.length: " + testEmojiHeatList.length);
         // 大于limit的 emojiId 一定在 testNetwork 中
         for (int i = 0; i < oldEmojiIdList.length; i++) {
             if (oldEmojiHeatList[i] >= limit) {
@@ -302,6 +318,12 @@ public class DeleteColdEmojiTest {
                 EmojiMessageInterface oldEmojiMessage = (EmojiMessageInterface) oldMessage;
                 int oldEmojiId = oldEmojiMessage.getEmojiId();
                 if (testNetwork.containsEmojiId(oldEmojiId)) {
+                    for (int i = 0; i < testEmojiIdList.length; i++) {
+                        if (oldEmojiId == testEmojiIdList[i]) {
+                            assertTrue(testEmojiHeatList[i] >= limit);
+                            break;
+                        }
+                    }
                     boolean found = false;
                     for (MessageInterface testMessage : testMessages) {
                         if (equalMessage(oldMessage, testMessage)) {
