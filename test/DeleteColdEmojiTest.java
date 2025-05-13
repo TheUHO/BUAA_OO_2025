@@ -342,35 +342,27 @@ public class DeleteColdEmojiTest {
     public boolean equalMessage(MessageInterface message1, MessageInterface message2) {
         if (message1.getId() == message2.getId() && message1.getType() == message2.getType()
             && message1.getSocialValue() == message2.getSocialValue() 
-            && message1.getPerson1().equals(message2.getPerson1())) {
-            if (message1.getType() == 0 && message1.getTag() == null && message2.getTag() == null
-                && message1.getPerson2().equals(message2.getPerson2())) {
-                if (message1 instanceof RedEnvelopeMessageInterface) {
+            && message1.getPerson1().equals(message2.getPerson1())
+            && message1.getPerson2().equals(message2.getPerson2())
+            && message1.getTag().equals(message2.getTag())) {
+            if (message1 instanceof RedEnvelopeMessageInterface) {
+                if (message2 instanceof RedEnvelopeMessageInterface) {
                     RedEnvelopeMessageInterface redEnvelopeMessage1 = (RedEnvelopeMessageInterface) message1;
                     RedEnvelopeMessageInterface redEnvelopeMessage2 = (RedEnvelopeMessageInterface) message2;
                     return redEnvelopeMessage1.getMoney() == redEnvelopeMessage2.getMoney();
-                } else if (message1 instanceof ForwardMessageInterface) {
-                    ForwardMessageInterface forwardMessage1 = (ForwardMessageInterface) message1;
-                    ForwardMessageInterface forwardMessage2 = (ForwardMessageInterface) message2;
-                    return forwardMessage1.getArticleId() == forwardMessage2.getArticleId();
-                } else if (message1 instanceof EmojiMessageInterface) {
-                    EmojiMessageInterface emojiMessage1 = (EmojiMessageInterface) message1;
-                    EmojiMessageInterface emojiMessage2 = (EmojiMessageInterface) message2;
-                    return emojiMessage1.getEmojiId() == emojiMessage2.getEmojiId();
                 } else {
                     return false;
                 }
-            } else if (message1.getType() == 1 && message1.getPerson2() == null && message2.getPerson2() == null
-                && message1.getTag().equals(message2.getTag())) {
-                if (message1 instanceof RedEnvelopeMessageInterface) {
-                    RedEnvelopeMessageInterface redEnvelopeMessage1 = (RedEnvelopeMessageInterface) message1;
-                    RedEnvelopeMessageInterface redEnvelopeMessage2 = (RedEnvelopeMessageInterface) message2;
-                    return redEnvelopeMessage1.getMoney() == redEnvelopeMessage2.getMoney();
-                } else if (message1 instanceof ForwardMessageInterface) {
+            } else if (message1 instanceof ForwardMessageInterface) {
+                if (message2 instanceof ForwardMessageInterface) {
                     ForwardMessageInterface forwardMessage1 = (ForwardMessageInterface) message1;
                     ForwardMessageInterface forwardMessage2 = (ForwardMessageInterface) message2;
                     return forwardMessage1.getArticleId() == forwardMessage2.getArticleId();
-                } else if (message1 instanceof EmojiMessageInterface) {
+                } else {
+                    return false;
+                }
+            } else if (message1 instanceof EmojiMessageInterface) {
+                if (message2 instanceof EmojiMessageInterface) {
                     EmojiMessageInterface emojiMessage1 = (EmojiMessageInterface) message1;
                     EmojiMessageInterface emojiMessage2 = (EmojiMessageInterface) message2;
                     return emojiMessage1.getEmojiId() == emojiMessage2.getEmojiId();
@@ -378,7 +370,13 @@ public class DeleteColdEmojiTest {
                     return false;
                 }
             } else {
-                return false;
+                if (message2 instanceof EmojiMessageInterface || 
+                    message2 instanceof RedEnvelopeMessageInterface || 
+                    message2 instanceof ForwardMessageInterface) {
+                    return false;
+                } else {
+                    return true;
+                }
             }
         } else {
             return false;
