@@ -16,6 +16,7 @@ import org.junit.runners.Parameterized;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 @RunWith(Parameterized.class)
@@ -343,8 +344,8 @@ public class DeleteColdEmojiTest {
         if (message1.getId() == message2.getId() && message1.getType() == message2.getType()
             && message1.getSocialValue() == message2.getSocialValue() 
             && message1.getPerson1().equals(message2.getPerson1())
-            && message1.getPerson2().equals(message2.getPerson2())
-            && message1.getTag().equals(message2.getTag())) {
+            && Objects.equals(message1.getPerson2(), message2.getPerson2())
+            && Objects.equals(message1.getTag(), message2.getTag())) { // 对于null也支持
             if (message1 instanceof RedEnvelopeMessageInterface) {
                 if (message2 instanceof RedEnvelopeMessageInterface) {
                     RedEnvelopeMessageInterface redEnvelopeMessage1 = (RedEnvelopeMessageInterface) message1;
