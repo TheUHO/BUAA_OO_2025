@@ -1,11 +1,8 @@
-import static com.oocourse.library1.LibraryIO.PRINTER;
-
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
+import static com.oocourse.library1.LibraryIO.PRINTER;
 import com.oocourse.library1.LibraryBookId;
 import com.oocourse.library1.LibraryBookIsbn;
 import com.oocourse.library1.LibraryBookState;
@@ -177,7 +174,7 @@ public class Library {
             if (book == null) {
                 // 书籍不存在，预约失败
                 continue;
-            } else if (appointmentOffice.addReservedBook(book, date)) {
+            } else if (appointmentOffice.addReservedBook(reservationInfo, book, date)) {
                 // 预约成功，书籍放入预约处
                 moveInfos.add(new LibraryMoveInfo(book.getBookId(),  LibraryBookState.BOOKSHELF, 
                     LibraryBookState.APPOINTMENT_OFFICE, reservationInfo.getStudentId()));
