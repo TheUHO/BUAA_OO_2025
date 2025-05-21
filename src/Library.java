@@ -147,7 +147,7 @@ public class Library {
         PRINTER.info(req.getDate(), bookId, traces);
     }
 
-    public void clearBrrowReturnOffice(ArrayList<LibraryMoveInfo> moveInfos, LocalDate date) {
+    private void clearBrrowReturnOffice(ArrayList<LibraryMoveInfo> moveInfos, LocalDate date) {
         ArrayList<Book> bookList = brrowReturnOffice.clearBrrowReturnOffice();
         for (Book book : bookList) {
             moveInfos.add(new LibraryMoveInfo(book.getBookId(), 
@@ -157,7 +157,7 @@ public class Library {
         }
     }
 
-    public void clearAppointmentOffice(ArrayList<LibraryMoveInfo> moveInfos, 
+    private void clearAppointmentOffice(ArrayList<LibraryMoveInfo> moveInfos, 
         LocalDate date, int limitDays) {
         ArrayList<Book> bookList = appointmentOffice.clearOutdatedBooks(date, limitDays);
         for (Book book : bookList) {
@@ -189,12 +189,12 @@ public class Library {
         }
     }
 
-    public void addBookTrace(Book book, LocalDate date, LibraryBookState newState) {
+    private void addBookTrace(Book book, LocalDate date, LibraryBookState newState) {
         book.addTrace(new LibraryTrace(date, book.getBookState(), newState));
         book.setBookState(newState);
     }
 
-    public User getUser(String studentId) {
+    private User getUser(String studentId) {
         users.computeIfAbsent(studentId, k -> new User(studentId));
         return users.get(studentId);
     }
