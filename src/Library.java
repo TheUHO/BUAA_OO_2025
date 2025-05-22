@@ -83,16 +83,13 @@ public class Library {
         User user = getUser(studentId);
         LibraryBookIsbn isbn = req.getBookIsbn();
         if (user.checkoutOrder(isbn)) { // 检查是否可以预约
-            Book book = bookshelf.queryBookByIsbn(isbn);
-            if (book != null) {
-                // 预约成功
-                ReservationInfo info = new ReservationInfo(studentId, book.getBookId());
-                appointmentOffice.addReservationInfo(info); // 添加预约信息到预约处
-                user.addReservationInfo(info); // 添加预约信息到用户
-                // 打印预约操作
-                PRINTER.accept(req);
-                return;
-            }
+            // 预约成功
+            ReservationInfo info = new ReservationInfo(studentId, isbn);
+            appointmentOffice.addReservationInfo(info); // 添加预约信息到预约处
+            user.addReservationInfo(info); // 添加预约信息到用户 
+            // 打印预约操作
+            PRINTER.accept(req);
+            return;
         }
         // 预约失败
         PRINTER.reject(req);
@@ -104,7 +101,7 @@ public class Library {
         LibraryBookIsbn isbn = req.getBookIsbn();
         if (user.checkoutBorrow(isbn)) {
             ReservationInfo info = user.getReservationInfo();
-            if (info != null && info.getBookId().getBookIsbn().equals(isbn)) {
+            if (info != null && info.getBookIsbn().equals(isbn)) {
                 Book book = appointmentOffice.getReservedBook(info);
                 if (book != null) {
                     user.addBook(book); // 添加书籍到用户
@@ -130,7 +127,7 @@ public class Library {
             brrowReturnOffice.addBook(book); // 添加书籍到借还处
             addBookTrace(book, req.getDate(), LibraryBookState.BORROW_RETURN_OFFICE);
             // 打印还书操作
-            PRINTER.accept(req, book.getBookId());
+            PRINTER.accept(req);
             return;
         }
         // 还书失败
@@ -170,7 +167,7 @@ public class Library {
         ArrayList<ReservationInfo> reservationInfos = appointmentOffice.getAllReservationInfo();
         for (ReservationInfo reservationInfo : reservationInfos) {
             // 根据预约信息获取书籍
-            Book book = bookshelf.getBooks().getRemoveBookById(reservationInfo.getBookId());
+            Book book = bookshelf.getBooks().getRemoveBookByIsbn(reservationInfo.getBookIsbn());
             if (book == null) {
                 // 书籍不存在，预约失败
                 continue;

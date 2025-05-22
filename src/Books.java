@@ -81,7 +81,7 @@ public class Books {
     // 判断是否有TypeB书籍
     public boolean containsTypeB() {
         for (LibraryBookIsbn isbn : bookMap.keySet()) {
-            if (isbn.isTypeB()) {
+            if (isbn.isTypeB() && !bookMap.get(isbn).isEmpty()) {
                 return true;
             }
         }
@@ -90,7 +90,7 @@ public class Books {
 
     // 判断是否包含该ISBN
     public boolean containsIsbn(LibraryBookIsbn isbn) {
-        return bookMap.containsKey(isbn);
+        return bookMap.containsKey(isbn) && !bookMap.get(isbn).isEmpty();
     }
 
     // 判断是否包含该BookId
@@ -102,7 +102,7 @@ public class Books {
     // 获取一本书
     public Book getBookByIsbn(LibraryBookIsbn isbn) {
         HashMap<LibraryBookId, Book> copies = bookMap.get(isbn);
-        if (copies == null) {
+        if (copies == null || copies.isEmpty()) {
             return null;
         }
         LibraryBookId firstKey = copies.keySet().iterator().next();

@@ -20,7 +20,6 @@ public class User {
 
     public ReservationInfo getReservationInfo() {
         if (reservationInfo != null && reservationInfo.isValid()) {
-            reservationInfo.setValid(false);
             return reservationInfo;
         } else {
             reservationInfo = null;

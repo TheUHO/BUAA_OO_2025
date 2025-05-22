@@ -1,14 +1,21 @@
+import java.time.LocalDate;
 import java.util.Objects;
+
 import com.oocourse.library1.LibraryBookId;
+import com.oocourse.library1.LibraryBookIsbn;
 
 public class ReservationInfo {
     private final String studentId;
-    private final LibraryBookId bookId;
+    private final LibraryBookIsbn bookIsbn;
+    private LocalDate reservationDate;
+    private LibraryBookId reservationId;
     private boolean valid;
 
-    public ReservationInfo(String studentId, LibraryBookId bookId) {
+    public ReservationInfo(String studentId, LibraryBookIsbn bookIsbn) {
         this.studentId = studentId;
-        this.bookId = bookId;
+        this.bookIsbn = bookIsbn;
+        this.reservationDate = null;
+        this.reservationId = null;
         this.valid = true;
     }
 
@@ -16,12 +23,28 @@ public class ReservationInfo {
         return studentId;
     }
 
-    public LibraryBookId getBookId() {
-        return bookId;
+    public LibraryBookIsbn getBookIsbn() {
+        return bookIsbn;
+    }
+
+    public LocalDate getReservationDate() {
+        return reservationDate;
+    }
+
+    public LibraryBookId getReservationId() {
+        return reservationId;
     }
 
     public boolean isValid() {
         return valid;
+    }
+
+    public void setReservationDate(LocalDate reservationDate) {
+        this.reservationDate = reservationDate;
+    }
+
+    public void setReservationId(LibraryBookId reservationId) {
+        this.reservationId = reservationId;
     }
 
     public void setValid(boolean valid) {
@@ -31,7 +54,7 @@ public class ReservationInfo {
     @Override
     public int hashCode() { 
         // 使用studentId和bookId的hashCode作为ReservationInfo的hashCode
-        return Objects.hash(studentId, bookId);
+        return Objects.hash(studentId, bookIsbn);
     }
 
     @Override
@@ -45,6 +68,6 @@ public class ReservationInfo {
         }
         ReservationInfo that = (ReservationInfo) obj;
         return Objects.equals(studentId, that.studentId) &&
-               Objects.equals(bookId, that.bookId); 
+               Objects.equals(bookIsbn, that.bookIsbn); 
     }
 }

@@ -1,19 +1,16 @@
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import com.oocourse.library1.LibraryBookId;
 
 public class AppointmentOffice {
     private final HashSet<ReservationInfo> reservationInfos;
     private final Books reservedBooks;
-    private final HashMap<ReservationInfo, LocalDate> reservationInfoToDate;
 
     public AppointmentOffice() {
         this.reservationInfos = new HashSet<>();
         this.reservedBooks = new Books();
-        this.reservationInfoToDate = new HashMap<>();
     }
 
     public void addReservationInfo(ReservationInfo reservationInfo) {
@@ -23,27 +20,29 @@ public class AppointmentOffice {
         reservationInfos.add(reservationInfo);
     }
 
-    public boolean addReservedBook(ReservationInfo reservationInfo, Book book, LocalDate date) {
-        if (book == null || reservedBooks.containsIsbn(book.getBookIsbn())) {
+    public boolean addReservedBook(ReservationInfo info, Book book, LocalDate date) {
+        if (book == null || info == null || !reservationInfos.contains(info)) {
+            return false;
+        } else if (info.getReservationDate() != null || info.getReservationId() != null) {
             return false;
         }
         reservedBooks.addBook(book);
-        reservationInfoToDate.put(reservationInfo, date);
+        info.setReservationId(book.getBookId());
+        info.setReservationDate(date);
         return true;
     }
 
-    public Book getReservedBook(ReservationInfo reservationInfo) {
-        if (reservationInfo == null || !reservationInfos.contains(reservationInfo) 
-            || !reservationInfoToDate.containsKey(reservationInfo)) {
+    public Book getReservedBook(ReservationInfo info) {
+        if (info == null || !reservationInfos.contains(info) 
+            || info.getReservationDate() == null || info.getReservationId() == null) {
             return null;
-        } else if (!reservedBooks.containsBookId(reservationInfo.getBookId())) {
+        } else if (!reservedBooks.containsBookId(info.getReservationId())) {
             return null;
         } else {
-            LibraryBookId bookId = reservationInfo.getBookId();
+            LibraryBookId bookId = info.getReservationId();
             Book book = reservedBooks.getRemoveBookById(bookId);
             if (book != null) {
-                reservationInfos.remove(reservationInfo);
-                reservationInfoToDate.remove(reservationInfo);
+                reservationInfos.remove(info);
             }
             return book;
         }
@@ -60,17 +59,18 @@ public class AppointmentOffice {
         Iterator<ReservationInfo> iterator = reservationInfos.iterator();
         while (iterator.hasNext()) {
             ReservationInfo reservation = iterator.next();
-            if (reservationInfoToDate.containsKey(reservation)) {
-                LocalDate reservationDate = reservationInfoToDate.get(reservation);
-                if (reservationDate.until(date).getDays() >= limitDays) {
-                    Book book = reservedBooks.getRemoveBookById(reservation.getBookId());
+            if (reservation != null) {
+                LocalDate reservationDate = reservation.getReservationDate();
+                if (reservationDate != null && reservationDate.until(date).getDays() >= limitDays) {
+                    Book book = reservedBooks.getRemoveBookById(reservation.getReservationId());
                     if (book != null) {
                         outdatedBooks.add(book);
                     }
                     // 预约信息失效
                     reservation.setValid(false);
+                    reservation.setReservationId(null);
+                    reservation.setReservationDate(null);
                     iterator.remove();
-                    reservationInfoToDate.remove(reservation);
                 }
             }
         }
