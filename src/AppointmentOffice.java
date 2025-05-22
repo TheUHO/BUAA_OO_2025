@@ -1,4 +1,5 @@
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -61,7 +62,8 @@ public class AppointmentOffice {
             ReservationInfo reservation = iterator.next();
             if (reservation != null) {
                 LocalDate reservationDate = reservation.getReservationDate();
-                if (reservationDate != null && reservationDate.until(date).getDays() >= limitDays) {
+                if (reservationDate != null && 
+                    reservationDate.until(date, ChronoUnit.DAYS) >= limitDays) {
                     Book book = reservedBooks.getRemoveBookById(reservation.getReservationId());
                     if (book != null) {
                         outdatedBooks.add(book);
