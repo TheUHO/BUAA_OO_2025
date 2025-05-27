@@ -307,7 +307,7 @@ public class Library {
                 continue;
             } else if (appointmentOffice.addReservedBook(reservationInfo, book, date)) {
                 // 预约成功，书籍放入预约处
-                moveInfos.add(new LibraryMoveInfo(book.getBookId(),  LibraryBookState.BOOKSHELF, 
+                moveInfos.add(new LibraryMoveInfo(book.getBookId(),  book.getBookState(), 
                     LibraryBookState.APPOINTMENT_OFFICE, reservationInfo.getStudentId()));
                 addBookTrace(book, date, LibraryBookState.APPOINTMENT_OFFICE);
             } else {
