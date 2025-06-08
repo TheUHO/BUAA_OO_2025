@@ -330,8 +330,6 @@ public class Library {
     }
 
     @Trigger(from = "bs", to = "ao")
-    @SendMessage(from = "AppointmentOffice", to = "Bookshelf")
-    @SendMessage(from = "Bookshelf", to = "AppointmentOffice")
     private void sendReservedBook(ArrayList<LibraryMoveInfo> moveInfos, LocalDate date) {
         // 获取所有预约信息
         ArrayList<ReservationInfo> reservationInfos = appointmentOffice.getAllReservationInfo();
